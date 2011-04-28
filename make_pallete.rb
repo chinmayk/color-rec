@@ -10,8 +10,8 @@ require 'utils'
 #query = "@ladygaga"
 results = []
 
-open('jeff-processed','r') do |f|
-	Dir.chdir('./data') do
+open('./tmp/input','r') do |f|
+	Dir.chdir('../data') do
 		f.readlines.each do |query|
 			query = query.strip! 
 			unless query.include?('#')
@@ -20,13 +20,13 @@ open('jeff-processed','r') do |f|
 					`mkdir -p #{query}`
 					dump_from_google(query, query)
 				end
-				#results << {"query"=>query, "results"=> json_for_query(query)} 
+				results << {"query"=>query, "results"=> json_for_query(query)} 
 			end
 		end
 		
-		#open("hist.js", "w") do |out|
-		#	out.write("color_frequencies = #{results.to_json}")
-		#end
+		open("hist.js", "w") do |out|
+			out.write("color_frequencies = #{results.to_json}")
+		end
 	end	
 end
 #Dir.chdir('./data') 
