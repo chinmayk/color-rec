@@ -1,16 +1,16 @@
 <html>
   <head>
-    <title>Crimean War</title>
+    <title>All images</title>
     <link type="text/css" rel="stylesheet" href="../ex.css"/>
-    <script type="text/javascript" src="viewer/protovis-r3.2.js"></script>
-    <script type="text/javascript" src="viewer/colortools.js"></script>
-	<script type="text/javascript" src="viewer/jquery-min.js"></script>
+    <script type="text/javascript" src="lib/js/protovis-r3.2.js"></script>
+    <script type="text/javascript" src="lib/js/colortools.js"></script>
+    <script type="text/javascript" src="../data/hist.js"></script>
+	<script type="text/javascript" src="lib/js/jquery-min.js"></script>
     <style type="text/css">
 
-#histogram, #histogram2 {
+.histogram {
   width: 600px;
   height: 300px;
-  display: none;
 }
 
 #fig {
@@ -28,10 +28,10 @@
     			
     			console.log(l_acc, a_acc, b_acc);
     			
-    			approximate_colors = ColorTools.ApproximateLAB(color_frequency.values,l_acc,a_acc,b_acc);
+    			//approximate_colors = ColorTools.ApproximateLAB(color_frequencies.values,l_acc,a_acc,b_acc);
 
-    			vis_approx.render();
-    			scatter.render();
+				vis_approx.data(approximate_colors.values);
+				vis_approx.render();
     			
     	};
     	
@@ -68,107 +68,50 @@
   			<input type="text" id="b_acc" value="10.0"/><br/>
   			<input type="button" id="updateViz" value="Update visualization" />
   	</form>
-  	
-  	<div id="histogram">
+  	  	
+  	<div id="histograms">
     <script type="text/javascript+protovis">
-    approximate_colors = ColorTools.ApproximateLAB(color_frequency.values,1.0, 1.0, 1.0);
-    var w = 800,
-    h = 280,
-    x = pv.Scale.linear(0,color_frequency.values.length).range(0,w), /*ordinal(crimea, function(d) d.date).splitBanded(0, w),*/
-    y = pv.Scale.linear(0, color_frequency.max).range(0, h),
-    barWidth = x(1),
-    fill = pv.colors("lightpink", "darkgray", "lightblue"),
-    format = pv.Format.date("%b");
-
-vis = new pv.Panel()
-    .width(w)
-    .height(h)
-    .margin(19.5)
-    .right(40);
+    $.each(color_frequencies, function(index, val)
+    {
+    	var color_frequency = val.results;
+	    //approximate_colors = ColorTools.ApproximateLAB(color_frequency.values,1.0, 1.0, 1.0);
+	    var w = 800,
+	    h = 280,
+	    x = pv.Scale.linear(0,color_frequency.values.length).range(0,w), /*ordinal(crimea, function(d) d.date).splitBanded(0, w),*/
+	    y = pv.Scale.linear(0, color_frequency.max).range(0, h),
+	    barWidth = x(1),
+	    fill = pv.colors("lightpink", "darkgray", "lightblue"),
+	    format = pv.Format.date("%b");
+	
+		vis = new pv.Panel()
+		    .width(w)
+		    .height(h)
+		    .margin(19.5)
+		    .right(40);
+		    
+		    vis.add(pv.Bar)
+		    .data(function() color_frequency.values)
+		    .bottom(0).width(barWidth)
+		    .height(function (d) y(d.frequency))
+		    .left(function (d) x(this.index))
+		    .fillStyle(function (d) "rgba("+ d.rgba + ")");
+		    
+		    vis.add(pv.Label)
+			    .left(75)
+			    .top(16)
+			    .textAlign("center")
+			    .text(val.query);
+					    
+		    vis.render();
+    });
     
-    vis.add(pv.Bar)
-    .data(function() color_frequency.values)
-    .bottom(0).width(barWidth)
-    .height(function (d) y(d.frequency))
-    .left(function (d) x(this.index))
-    .fillStyle(function (d) "rgba("+ d.rgba + ")");
-    </script>
-  </div>
-  
-  <div id="histogram2">
-    <script type="text/javascript+protovis">
     
-    var w = 800,
-    h = 280,
-    x = pv.Scale.linear(0,function() approximate_colors.values.length).range(0,w), /*ordinal(crimea, function(d) d.date).splitBanded(0, w),*/
-    y = pv.Scale.linear(0,function() approximate_colors.max).range(0, h),	
-    fill = pv.colors("lightpink", "darkgray", "lightblue"),
-    format = pv.Format.date("%b");
-
-	vis_approx = new pv.Panel()
-    .width(w)
-    .height(h)
-    .margin(19.5)
-    .right(40);
     
-    vis_approx.add(pv.Bar)
-    .data(function() approximate_colors.values)
-    .bottom(0).width(function() x(1))
-    .height(function (d) y(d.frequency))
-    .left(function (d) x(this.index))
-    .fillStyle(function (d) "rgba("+ d.rgba.string + ")");
-    </script>
-  </div>
-  <div id="scatter_plot">
-    <script type="text/javascript+protovis">
-
-/* Sizing and scales. */
-var w = 600,
-    h = 600,
-    x = pv.Scale.linear(-500, 500).range(0, w), //This is the "a" axis
-    y = pv.Scale.linear(-100, 100).range(0, h), 	//This is the "y" axis
-    c = pv.Scale.log(1, 100).range(0, function() approximate_colors.max);
-
-/* The root panel. */
-scatter = new pv.Panel()
-    .width(w)
-    .height(h)
-    .bottom(20)
-    .left(20)
-    .right(10)
-    .top(5);
-
-/* Y-axis and ticks. */
-scatter.add(pv.Rule)
-    .data(y.ticks())
-    .bottom(y)
-    .strokeStyle(function(d) d ? "#eee" : "#000")
-  .anchor("left").add(pv.Label)
-    .visible(function(d) d > 0 && d < 1)
-    .text(y.tickFormat);
-
-/* X-axis and ticks. */
-scatter.add(pv.Rule)
-    .data(x.ticks())
-    .left(x)
-    .strokeStyle(function(d) d ? "#eee" : "#000")
-  .anchor("bottom").add(pv.Label)
-    .visible(function(d) d > 0 && d < 100)
-    .text(x.tickFormat);
-
-/* The dot plot! */
-scatter.add(pv.Panel)
-    .data(function() approximate_colors.values)
-  .add(pv.Dot)
-    .left(function(d) x(d.lab.a))
-    .bottom(function(d) y(d.lab.b))
-    .fillStyle(function(d) "rgba("+ d.rgba.string + ")")
-    .strokeStyle(function() this.fillStyle())
-    .size(function(d) (d.frequency*0.001))
-    .title(function(d) d.frequency.toFixed(1));
-
 
     </script>
+
   </div>
+
+
   </div></body>
 </html>
