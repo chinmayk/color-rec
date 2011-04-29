@@ -16,9 +16,9 @@ open('./tmp/input','r') do |f|
 			query = query.strip! 
 			unless query.include?('#')
 				puts "Processing #{query}..."
-				unless File.directory? query
-					`mkdir -p #{query}`
-					dump_from_google(query, query)
+				unless File.directory? URI.encode(query)
+					`mkdir -p #{URI.encode(query)}`
+					dump_from_google(query, URI.encode(query))
 				end
 				results << {"query"=>query, "results"=> json_for_query(query)} 
 			end
