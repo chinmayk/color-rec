@@ -166,7 +166,7 @@ class ImageAnalyzer
 	def hist_to_json(hist)
 		#Assume the hist is a hash
 		out_hist = []
-		query_bins = []
+		query_bins = {}
 		hist.each do |key, val|
 			out_hist << {"rgba" => "#{(key.red / 66535.0 * 255).round}, #{(key.green / 66535.0 * 255).round}, #{(key.blue / 66535.0 * 255).round}, 1",
 				"lab" => ColorTools.rgb2lab(key),
@@ -200,17 +200,20 @@ class ImageAnalyzer
 				ab_key = [(v['lab']['a']/A_ACCURACY).to_i, (v['lab']['a']/A_ACCURACY).to_i]
 				
 				unless ab_bins.has_key? ab_key
-					ab_bins[ab_key] = []
+					ab_bins[ab_key] = {'values' => [], 'frequency' => 0}
 				end
 				
-				ab_bins[ab_key] << v
+				ab_bins[ab_key]['values'] << v
 			end
 			
-			ab_bins.each do |ab_key, ab_val|
+			ab_bins.each do |ab_key, ab_val_store|
+				ab_val = ab_val_store['values']
 				average_a = ab_val.inject(0){|acc, v| acc + v['frequency']* v['lab']['a']}
 				average_b = ab_val.inject(0){|acc, v| acc + v['frequency']* v['lab']['b']}
 				
 				count_pixels = ab_val.inject(0){|acc, v| acc + v['frequency']}
+				
+				ab_val_store['frequency'] = count_pixels	
 				
 				max_binned_frequency = count_pixels if count_pixels > max_binned_frequency
 				average_a /= count_pixels; average_b /= count_pixels
@@ -224,11 +227,11 @@ class ImageAnalyzer
 									  'closest_pixel' => closest_bin,
 									  'frequency' => count_pixels
 									 }
+				 
+				#Store the bins in the topical cache
+				query_bins[[key, ab_key[0], ab_key[1]]] = ab_val_store
 			end
 			
-			#Store the bins in the topical cache
-			query_bins << {'l_bin' => key, 'ab_bins' => ab_bins}
-		
 			approximate_colors << this_bin
 		end
 		
