@@ -155,7 +155,7 @@ class ImageAnalyzer
 		#imgList << quantizedImgLAB.first
 		#imgList << quantizedImgHSL.first
 	
-		quantized256LAB = img.quantize 256, LABColorspace, NoDitherMethod
+		quantized256LAB = img.quantize 256, LABColorspace, NoDithbind
 		hist = generate_histogram(quantized256LAB)
 		#Serialize the hisotgram for future use
 		open("#{dir}/serialized-hist", 'w') do |h|
@@ -209,24 +209,19 @@ class ImageAnalyzer
 			
 			ab_bins.each do |ab_key, ab_val_store|
 				ab_val = ab_val_store['values']
-				average_a = ab_val.inject(0){|acc, v| acc + v['frequency']* v['lab']['a']}
-				average_b = ab_val.inject(0){|acc, v| acc + v['frequency']* v['lab']['b']}
 				
-				count_pixels = ab_val.inject(0){|acc, v| acc + v['frequency']}
+				centroid = centroid_of ab_val
 				
-				ab_val_store['frequency'] = count_pixels	
+				ab_val_store['frequency'] = centroid['frequency']
 				
-				max_binned_frequency = count_pixels if count_pixels > max_binned_frequency
-				average_a /= count_pixels; average_b /= count_pixels
-				
-				centroid = {'l' => average_l, 'a'=>average_a, 'b'=>average_b}
+				max_binned_frequency = centroid['frequency'] if centroid['frequency'] > max_binned_frequency
 				
 				closest_bin = ab_val.min {|a,b| ColorTools.LABDistance(a['lab'],centroid) <=> ColorTools.LABDistance(b['lab'], centroid)}
 				
-				this_bin <<{'l'=>average_l, 'a'=> average_a, 'b'=> average_b,  
-									  'rgb'=> ColorTools.lab2RGB(average_l, average_a, average_b), #this gives the centroid of the bins
+				this_bin <<{'l'=>centroid['l'], 'a'=> centroid['a'], 'b'=> centroid['b'],  
+									  'rgb'=> ColorTools.lab2RGB(centroid['l'], centroid['a'], centroid['b']), #this gives the centroid of the bins
 									  'closest_pixel' => closest_bin,
-									  'frequency' => count_pixels
+									  'frequency' => centroid['frequency']
 									 }
 				 
 				#Store the bins in the topical cache
@@ -248,6 +243,19 @@ class ImageAnalyzer
 					}
 		@topic_hist << query_bins
 		out_data
+	end
+	
+	#Find the centroid of a bin in LAB space.
+	def centroid_of (bin)
+		average_l = bin.inject(0){|acc, v| acc + v['frequency']*v['lab']['l']}
+		average_a = bin.inject(0){|acc, v| acc + v['frequency']* v['lab']['a']}
+		average_b = bin.inject(0){|acc, v| acc + v['frequency']* v['lab']['b']}
+		
+		count_pixels = bin.inject(0){|acc, v| acc + v['frequency']}	
+		
+		average_l /= count_pixels; average_a /= count_pixels; average_b /= count_pixels
+		
+		centroid = {'l' => average_l, 'a'=>average_a, 'b'=>average_b, 'frequency' => count_pixels}
 	end
 	
 	def topic_info
