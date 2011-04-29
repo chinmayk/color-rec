@@ -23,32 +23,32 @@
 	<body>
 		<div id="chart">
 			<script type="text/javascript+protovis">
-				var size= 200, p = 5,
-    				bins = [1,2,3,4,5,6,7,8,9,10];
+				var size= 150, p = 5,
+    				bins = 10; //Not really, but this assumes we only use the length attribute
 				
-				var aScale = pv.Scale.linear(-100, 100).range(0,size);
-				var bScale = pv.Scale.linear(-500, 500).range(0,size);
+				var aScale = pv.Scale.linear(-500, 500).range(0,size);
+				var bScale = pv.Scale.linear(-200, 200).range(0,size);
 				
 				var vis = new pv.Panel()
-				    .width(bins.length * (size + 2 * p))
-				    .height(bins.length * (size + 2 * p));
+				    .width(bins * (size + 2 * p))
+				    .height(bins * (size + 2 * p));
 				
 				var cell = vis.add(pv.Panel)
 				    .data(color_frequencies)
 				    .height(size)
 				    .top(function() this.index * (size + 2 * p) + p) //Generate the rows
 					  .add(pv.Panel)
-					    .data(bins)
+					    .data(function(d) d.results.approximate_colors)
 					    .width(size)
 					    .left(function() {return this.index * (size + 2 * p) + p;}) //Generate the columns
 					    .strokeStyle("#ccc"); //This generates all the cells
 	
 				cell.add(pv.Dot)
-				    .data(function(d,k0) {return k0.results.values;})
-				    .left(function(d) aScale(d.lab.a))
-				    .bottom(function(d) bScale(d.lab.b))
-				    .fillStyle(function(d) "rgba(" + d.rgba + ")")
-				    .size(function(d, k0, k1) {return parseFloat(d.frequency)/k1.results.max * 500;})
+				    .data(function(d,k0) { return d;} /*{k0.results.values;}*/)
+				    .left(function(d) { return aScale(d.a);})
+				    .bottom(function(d) bScale(d.b))
+				    .fillStyle(function(d) "rgba" + d.rgb)
+				    .size(function(d, k0, k1) {return parseFloat(d.frequency)/k1.results.max_binned_frequency * 500;})
 				    .strokeStyle('none');
 		
 				vis.render();

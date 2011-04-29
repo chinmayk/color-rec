@@ -171,7 +171,7 @@ def hist_to_json hist
 	
 	#In addition to the exact LAB numbers, we also want to bin the LAB numbers
 	approximate_colors = []
-	
+	max_binned_frequency = 0
 	#Find the right bins. Start with L
 	l_bins = {};
 	average_l = {};
@@ -208,6 +208,7 @@ def hist_to_json hist
 			
 			count_pixels = ab_val.inject(0){|acc, v| acc + v['frequency']}
 			
+			max_binned_frequency = count_pixels if count_pixels > max_binned_frequency
 			average_a /= count_pixels; average_b /= count_pixels
 			
 			this_bin <<{'l'=>average_l, 
@@ -227,7 +228,8 @@ def hist_to_json hist
 	out_hist.sort! {|x,y| x["lab"]['l'] <=> y["lab"]['l']}
 	out_data = {"values" => out_hist,
 				"max" => hist.values.max,
-				"approximate_colors" => approximate_colors
+				"approximate_colors" => approximate_colors,
+				"max_binned_frequency" => max_binned_frequency
 				}
 	out_data
 end
