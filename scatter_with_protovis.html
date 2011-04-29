@@ -24,22 +24,31 @@
 		<div id="chart">
 			<script type="text/javascript+protovis">
 				var size= 150, p = 5,
+					text_height = 20,
     				bins = 10; //Not really, but this assumes we only use the length attribute
 				
-				var aScale = pv.Scale.linear(-500, 500).range(0,size);
-				var bScale = pv.Scale.linear(-200, 200).range(0,size);
+				var aScale = pv.Scale.linear(-200, 200).range(0,size); //Actual range is -500 to 500
+				var bScale = pv.Scale.linear(-100, 100).range(0,size); //Actual range is -200 to 200
 				
 				var vis = new pv.Panel()
-				    .width(bins * (size + 2 * p))
-				    .height(bins * (size + 2 * p));
+				    .width(bins * (size  + 2 * p))
+				    .height(bins * (size +text_height+ 2 * p));
 				
 				var cell = vis.add(pv.Panel)
 				    .data(color_frequencies)
-				    .height(size)
-				    .top(function() this.index * (size + 2 * p) + p) //Generate the rows
+				    .height(size+text_height)
+				    .top(function() this.index * (size + text_height + 2 * p) + p) //Generate the rows
+				    .add(pv.Label)
+					    .left(75)
+					    .top(0)
+					    .textAlign("center")
+					    .font("16px palatino")
+					    .text(function(d) d.query)
+					.parent
 					  .add(pv.Panel)
 					    .data(function(d) d.results.approximate_colors)
 					    .width(size)
+					    .height(size)
 					    .left(function() {return this.index * (size + 2 * p) + p;}) //Generate the columns
 					    .strokeStyle("#ccc"); //This generates all the cells
 	
@@ -48,7 +57,7 @@
 				    .left(function(d) { return aScale(d.a);})
 				    .bottom(function(d) bScale(d.b))
 				    .fillStyle(function(d) "rgba" + d.rgb)
-				    .size(function(d, k0, k1) {return parseFloat(d.frequency)/k1.results.max_binned_frequency * 500;})
+				    .size(function(d, k0, k1) {return parseFloat(d.frequency)/k1.results.max_binned_frequency * 1000;})
 				    .strokeStyle('none');
 		
 				vis.render();
