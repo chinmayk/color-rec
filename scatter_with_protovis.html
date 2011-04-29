@@ -1,0 +1,58 @@
+<html>
+	<head>
+	    <title>All images</title>
+	    <link type="text/css" rel="stylesheet" href="../ex.css"/>
+	    <script type="text/javascript" src="lib/js/d3.js"></script>
+	    <script type="text/javascript" src="lib/js/colortools.js"></script>
+	    <script type="text/javascript" src="lib/js/protovis-r3.2.js"></script>
+	    <script type="text/javascript" src="../data/hist.js"></script>
+	    <script type="text/javascript" src="flowers.js"></script>
+	    <style>
+		line {
+		  stroke: #eee;
+		  shape-rendering: crispEdges;
+		}
+		
+		rect {
+		  cursor: crosshair;
+		}
+
+	    </style>
+	</head>
+	
+	<body>
+		<div id="chart">
+			<script type="text/javascript+protovis">
+				var size= 200, p = 5,
+    				bins = [1,2,3,4,5,6,7,8,9,10];
+				
+				var aScale = pv.Scale.linear(-100, 100).range(0,size);
+				var bScale = pv.Scale.linear(-500, 500).range(0,size);
+				
+				var vis = new pv.Panel()
+				    .width(bins.length * (size + 2 * p))
+				    .height(bins.length * (size + 2 * p));
+				
+				var cell = vis.add(pv.Panel)
+				    .data(color_frequencies)
+				    .height(size)
+				    .top(function() this.index * (size + 2 * p) + p) //Generate the rows
+					  .add(pv.Panel)
+					    .data(bins)
+					    .width(size)
+					    .left(function() {return this.index * (size + 2 * p) + p;}) //Generate the columns
+					    .strokeStyle("#ccc"); //This generates all the cells
+	
+				cell.add(pv.Dot)
+				    .data(function(d,k0) {return k0.results.values;})
+				    .left(function(d) aScale(d.lab.a))
+				    .bottom(function(d) bScale(d.lab.b))
+				    .fillStyle(function(d) "rgba(" + d.rgba + ")")
+				    .size(function(d, k0, k1) {return parseFloat(d.frequency)/k1.results.max * 500;})
+				    .strokeStyle('none');
+		
+				vis.render();
+			</script>
+		</div>
+	</body>
+</html>

@@ -9,6 +9,9 @@ require 'get-images'
 include Magick
 HIST_HEIGHT = 500
 
+L_ACCURACY = 10.0; A_ACCURACY = 10.0; B_ACCURACY = 10.0;
+
+
 def generate_histogram(imgList, numColors = 256, space = LABColorspace)
 	
 	histogram = {}
@@ -166,9 +169,66 @@ def hist_to_json hist
 			"frequency" => val}
 	end
 	
+	#In addition to the exact LAB numbers, we also want to bin the LAB numbers
+	approximate_colors = []
+	
+	#Find the right bins. Start with L
+	l_bins = {};
+	average_l = {};
+	out_hist.each do |el|
+		if l_bins[(el["lab"]['l']/L_ACCURACY).to_i].nil?
+			l_bins[(el["lab"]['l']/L_ACCURACY).to_i] = []
+		end
+		l_bins[(el["lab"]['l']/L_ACCURACY).to_i] << el
+	end
+	
+	#For each l-bin, approximate the a, b bins
+	l_bins.each do |key, val|
+		this_bin = []
+		#Find the centroid of luminance
+		average_l = val.inject(0){|acc, v| acc + v['frequency']*v['lab']['l']}
+		numPixels = val.inject(0){|acc, v| acc + v['frequency']}
+		average_l /= numPixels;
+		
+		ab_bins = {}
+		
+		val.each do |v|
+			ab_key = [(v['lab']['a']/A_ACCURACY).to_i, (v['lab']['a']/A_ACCURACY).to_i]
+			
+			unless ab_bins.has_key? ab_key
+				ab_bins[ab_key] = []
+			end
+			
+			ab_bins[ab_key] << v
+		end
+		
+		ab_bins.each do |ab_key, ab_val|
+			average_a = ab_val.inject(0){|acc, v| acc + v['frequency']* v['lab']['a']}
+			average_b = ab_val.inject(0){|acc, v| acc + v['frequency']* v['lab']['b']}
+			
+			count_pixels = ab_val.inject(0){|acc, v| acc + v['frequency']}
+			
+			average_a /= count_pixels; average_b /= count_pixels
+			
+			this_bin <<{'l'=>average_l, 
+								  'a'=> average_a, 
+								  'b'=> average_b, 
+								  'rgb'=> ColorTools.lab2RGB(average_l[key], average_a, average_b),
+								  'frequency' => count_pixels
+								 }
+		end
+		approximate_colors << this_bin
+	end
+	
+	approximate_colors.sort! do |a, b|
+		a[0]['l'] <=> b[0]['l']
+	end
+	
 	out_hist.sort! {|x,y| x["lab"]['l'] <=> y["lab"]['l']}
 	out_data = {"values" => out_hist,
-				"max" => hist.values.max}
+				"max" => hist.values.max,
+				"approximate_colors" => approximate_colors
+				}
 	out_data
 end
 
@@ -177,7 +237,9 @@ def create_js(var_name, data)
 end
 
 class ColorTools
-	
+	##Conversion functions from
+	# http://cookbooks.adobe.com/post_Useful_color_equations__RGB_to_LAB_converter-14227.html
+	 
 	#This is what RMagick uses
 	MAX_PIXEL_VAL = 66535.0
 	
@@ -259,6 +321,67 @@ class ColorTools
 	def self.rgb2lab(pixel)
 		return xyz2LAB rgb2xyz pixel
 	end
+	
+	def self.lab2xyz(l, a, b)
+			
+		y = (l + 16) / 116.0;
+		x= a / 500.0 + y;
+		z = y - b / 200.0;
+ 
+		if (y ** 3 ) > 0.008856 
+			y = y ** 3 
+		else 
+			y = ( y - 16 / 116.0 ) / 7.787
+		end
+		 
+		if  x ** 3  > 0.008856 
+			x =  x ** 3 
+		else 
+			x = ( x - 16 / 116.0 ) / 7.787
+		end
+		
+		if z ** 3  > 0.008856 
+			z =  z ** 3 
+		else 
+			z = ( z - 16 / 116.0 ) / 7.787
+		end
+		
+		xyz = {:x => REF_X*x, :y => REF_Y*y, :z=>REF_Z*z}
+	end
+	
+	def self.xyz2RGB(pixel)
+		x = pixel[:x] / 100;        
+		y = pixel[:y] / 100;        
+		z = pixel[:z] / 100;        
+ 
+		r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+		g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+		b = x * 0.0557 + y * -0.2040 + z * 1.0570;
+ 
+		if  r > 0.0031308
+			r = 1.055 *  r ** 1/2.4 - 0.055
+		else
+			r = 12.92 * r
+		end
+		if g > 0.0031308
+			g = 1.055 *  g ** 1/2.4 - 0.055
+		else 
+			g = 12.92 * g
+		end
+		if b > 0.0031308
+			b = 1.055 *  b ** 1/2.4 - 0.055
+		else
+			b = 12.92 * b
+		end
+		
+		rgb = "(#{r*255}, #{g*255}, #{b*255}, 1)"
+		return rgb;
+	end
+	
+	def self.lab2RGB(l,a,b)
+		xyz2RGB lab2xyz l,a,b
+	end
+	
 	
 	def	self.roundLAB(lab, options = {})
 		options.merge!(ROUND_OPTIONS)
