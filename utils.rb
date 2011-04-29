@@ -213,7 +213,7 @@ def hist_to_json hist
 			this_bin <<{'l'=>average_l, 
 								  'a'=> average_a, 
 								  'b'=> average_b, 
-								  'rgb'=> ColorTools.lab2RGB(average_l[key], average_a, average_b),
+								  'rgb'=> ColorTools.lab2RGB(average_l, average_a, average_b),
 								  'frequency' => count_pixels
 								 }
 		end
@@ -242,7 +242,8 @@ class ColorTools
 	 
 	#This is what RMagick uses
 	MAX_PIXEL_VAL = 66535.0
-	
+	#Set a threshold
+	T = 0.008856
 	#Standard values
 	 REF_X = 95.047; # Observer= 2°, Illuminant= D65
 	 REF_Y = 100.000; 
@@ -260,6 +261,41 @@ class ColorTools
 		r = pixel.red/MAX_PIXEL_VAL
 		g = pixel.green/MAX_PIXEL_VAL
 		b = pixel.blue/MAX_PIXEL_VAL
+		
+		rgb2xyz r,g,b
+	end
+	
+	def self.rgb2lab3(r,g,b)	
+		x = r * 0.4124 + g * 0.3576 + b * 0.1805
+		y = r * 0.2126 + g * 0.7152 + b * 0.0722
+		z = r * 0.0193 + g * 0.1192 + b * 0.9505
+		
+		#Normalize for D65 white point
+		x /= 0.950456
+		z /= 1.088754
+		
+		xt = x > T ? 1 : 0;
+		yt = y > T ? 1 : 0;
+		zt = z > T ? 1 : 0;
+		
+		y_root = y ** (1/3.0); 
+
+		fX = xt * x ** (1/3.0) + (1-xt) * (7.787 * x + 16/116.0);
+		fY = yt * y_root + (1-yt) * (7.787 * y + 16/116.0);
+		fZ = zt * z ** (1/3.0) + (1-zt) * (7.787 * z + 16/116.0);
+		
+		l = yt * (116 * y_root - 16.0) + (1-yt) * (903.3 * y);
+		a = 500 * (fX - fY)
+		b = 200 * (fY - fZ)
+		
+		lab = {}
+		lab['l'] = l; lab['a'] = a; lab['b'] = b;
+		
+		lab
+	end
+	
+	def self.rgb2xyz(r,g,b)
+		
 		if (r > 0.04045)
 			r = (r + 0.055) / 1.055 ** 2.4
 		else
@@ -319,7 +355,10 @@ class ColorTools
 	end
 	
 	def self.rgb2lab(pixel)
-		return xyz2LAB rgb2xyz pixel
+		r = pixel.red/MAX_PIXEL_VAL
+		g = pixel.green/MAX_PIXEL_VAL
+		b = pixel.blue/MAX_PIXEL_VAL
+		return self.rgb2lab3 r,g,b
 	end
 	
 	def self.lab2xyz(l, a, b)
@@ -354,27 +393,35 @@ class ColorTools
 		y = pixel[:y] / 100;        
 		z = pixel[:z] / 100;        
  
-		r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+		r = (x * 3.2406) + (y * -1.5372) + (z * -0.4986);
 		g = x * -0.9689 + y * 1.8758 + z * 0.0415;
 		b = x * 0.0557 + y * -0.2040 + z * 1.0570;
  
-		if  r > 0.0031308
-			r = 1.055 *  r ** 1/2.4 - 0.055
-		else
-			r = 12.92 * r
-		end
-		if g > 0.0031308
-			g = 1.055 *  g ** 1/2.4 - 0.055
-		else 
-			g = 12.92 * g
-		end
-		if b > 0.0031308
-			b = 1.055 *  b ** 1/2.4 - 0.055
-		else
-			b = 12.92 * b
-		end
+ 		#print "r = #{r}, g = #{g}, b =#{b}"
+ 		
+		#if  r > 0.0031308
+		#	r = 1.055 *  r ** 1/2.4 - 0.055
+		#else
+		#	r = 12.92 * r
+		#end
+		#if g > 0.0031308
+		#	g = 1.055 *  g ** 1/2.4 - 0.055
+		#else 
+		#	g = 12.92 * g
+		#end
+		#if b > 0.0031308
+		#	b = 1.055 *  b ** 1/2.4 - 0.055
+		#else
+		#	b = 12.92 * b
+		#end
 		
-		rgb = "(#{r*255}, #{g*255}, #{b*255}, 1)"
+		#max to 1
+		r = 1 if r > 1; g = 1 if g > 1; b = 1 if b > 1;
+		
+		#min to 0
+		r = 0 if r < 0; g = 0 if g < 0; b = 0 if b < 0;
+		
+		rgb = "(#{(r*255).round}, #{(g*255).round}, #{(b*255).round}, 1)"
 		return rgb;
 	end
 	
