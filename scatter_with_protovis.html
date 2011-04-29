@@ -54,9 +54,9 @@
 	
 				cell.add(pv.Dot)
 				    .data(function(d,k0) { return d;} /*{k0.results.values;}*/)
-				    .left(function(d) { return aScale(d.a);})
-				    .bottom(function(d) bScale(d.b))
-				    .fillStyle(function(d) "rgba" + d.rgb)
+				    .left(function(d) { return aScale(d.closest_pixel.lab.a);})
+				    .bottom(function(d) bScale(d.closest_pixel.lab.b))
+				    .fillStyle(function(d) "rgba(" + d.closest_pixel.rgba + ")")
 				    .size(function(d, k0, k1) {return parseFloat(d.frequency)/k1.results.max_binned_frequency * 1000;})
 				    .strokeStyle('none');
 		

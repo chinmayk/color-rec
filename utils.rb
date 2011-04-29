@@ -211,10 +211,13 @@ def hist_to_json hist
 			max_binned_frequency = count_pixels if count_pixels > max_binned_frequency
 			average_a /= count_pixels; average_b /= count_pixels
 			
-			this_bin <<{'l'=>average_l, 
-								  'a'=> average_a, 
-								  'b'=> average_b, 
-								  'rgb'=> ColorTools.lab2RGB(average_l, average_a, average_b),
+			centroid = {'l' => average_l, 'a'=>average_a, 'b'=>average_b}
+			
+			closest_bin = ab_val.min {|a,b| ColorTools.LABDistance(a['lab'],centroid) <=> ColorTools.LABDistance(b['lab'], centroid)}
+			
+			this_bin <<{'l'=>average_l, 'a'=> average_a, 'b'=> average_b,  
+								  'rgb'=> ColorTools.lab2RGB(average_l, average_a, average_b), #this gives the centroid of the bins
+								  'closest_pixel' => closest_bin,
 								  'frequency' => count_pixels
 								 }
 		end
@@ -440,6 +443,15 @@ class ColorTools
 		b = (lab['b']/options[:l_granularity]).send(options[:round_method])
 		
 		rounded_lab = { 'l' => l, 'a' => a, 'b' => b}
+	end
+	
+	# Returns distance between two points in LAB space
+	def self.LABDistance(a,b)
+		l1 = a['l']; l2 = b['l']
+		a1 = a['a']; a2 = b['a']
+		b1 = b['b']; b2 = b['b']
+		
+		return ((l1 - l2)**2 + (a1 - a2)**2 + (b1-b2)**2) ** 0.5  
 	end
 end
 
