@@ -10,6 +10,9 @@ require 'utils'
 #query = "@ladygaga"
 results = []
 
+analyzer = ImageAnalyzer.new
+
+
 open('./tmp/input','r') do |f|
 	Dir.chdir('../data') do
 		f.readlines.each do |query|
@@ -20,12 +23,12 @@ open('./tmp/input','r') do |f|
 					`mkdir -p #{URI.encode(query)}`
 					dump_from_google(query, URI.encode(query))
 				end
-				results << {"query"=>query, "results"=> json_for_query(query)} 
+				results << {"query"=>query, "results"=> analyzer.json_for_query(query)} 
 			end
 		end
 		
 		open("hist.js", "w") do |out|
-			out.write("color_frequencies = #{results.to_json}")
+			out.write("color_frequencies = #{results.to_json};\ntopic_hist = #{analyzer.topic_info.to_json};")
 		end
 	end	
 end
