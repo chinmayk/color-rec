@@ -259,9 +259,33 @@ class ImageAnalyzer
 	end
 	
 	def topic_info
-		@topic_hist
+		#Find out IDF of each bin
+		idf = idf_of @topic_hist
 	end
-	
+
+	def idf_of(topic_hist)
+		numDocuments = topic_hist.length
+		numOccurences = {} 
+		topic_hist.each do |doc|
+			doc.each do |key, val|
+				if numOccurences.has_key? key
+					 
+					numOccurences[key] += 1
+				else
+					numOccurences[key] = 1
+				end
+			end
+		end
+		idfs = {}
+		
+		numOccurences.each do |key, val|
+			idfs[key] = Math.log(numDocuments/val)
+		end
+		
+		idfs
+	end
+		
+
 	def create_js(var_name, data)
 		"var #{var_name} = #{data};"
 	end
