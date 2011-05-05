@@ -1,0 +1,9 @@
+build/
+flowers.js
+*.tmp
+*.log
+log.*
+tmp/**
+*.aux
+*.gz
+
