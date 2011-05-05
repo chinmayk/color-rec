@@ -260,20 +260,22 @@ class ImageAnalyzer
 	
 	def topic_info
 		#Find out IDF of each bin
-		idf = idf_of @topic_hist
+		#@topic_hist
+		idf =  0 #idf_of @topic_hist
 	end
 
-	def idf_of(topic_hist)
+	#IDF with weight. The weight is the number
+	#Dammit this results in a -Infinity for some reason.
+	def weight_idf_of(topic_hist)
 		numDocuments = topic_hist.length
 		numOccurences = {} 
 		topic_hist.each do |doc|
 			doc.each do |key, val|
-				if numOccurences.has_key? key
-					 
-					numOccurences[key] += 1
-				else
-					numOccurences[key] = 1
+				unless numOccurences.has_key? key
+					numOccurences[key] = 0 
 				end
+				print key
+				numOccurences[key] += val['frequency']
 			end
 		end
 		idfs = {}
