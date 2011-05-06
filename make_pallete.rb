@@ -27,8 +27,10 @@ open('./tmp/input','r') do |f|
 			end
 		end
 		
+		results << {"query"=> "Total", "results" => analyzer.topic_info}
+		
 		open("hist.js", "w") do |out|
-			out.write("color_frequencies = #{results.to_json};\ntopic_hist = #{analyzer.topic_info.to_json};")
+			out.write("color_frequencies = #{results.to_json};")
 		end
 	end	
 end

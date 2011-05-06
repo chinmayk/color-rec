@@ -259,32 +259,43 @@ class ImageAnalyzer
 	end
 	
 	def topic_info
-		#Find out IDF of each bin
-		#@topic_hist
-		idf =  0 #idf_of @topic_hist
+
+		out_hist = []
+		#Find out total occurences for each bin
+		total_occ = total_occurences(@topic_hist)
+		max_binned_frequency = 0
+		total_occ.each do |key, val|
+			rgba = (@topic_hist.detect {|b| b.has_key? key })[key]['values'][0]
+			rgba['frequency'] = val
+			max_binned_frequency = val if val > max_binned_frequency
+			out_hist[key[0]] ||= []
+			
+			 out_hist[key[0]] << {"closest_pixel" => rgba,
+				"lab" => {'l' => key[0], 'a' => key[1], 'b' => key[2]},
+				"frequency" => val}
+		end
+		
+		
+		#out_hist
+		outer_hist = {'approximate_colors' => out_hist, 'max_binned_frequency' => max_binned_frequency}
+		
+		outer_hist
 	end
 
 	#IDF with weight. The weight is the number
 	#Dammit this results in a -Infinity for some reason.
-	def weight_idf_of(topic_hist)
-		numDocuments = topic_hist.length
+	def total_occurences(topic_hist)
 		numOccurences = {} 
 		topic_hist.each do |doc|
 			doc.each do |key, val|
 				unless numOccurences.has_key? key
 					numOccurences[key] = 0 
 				end
-				print key
 				numOccurences[key] += val['frequency']
 			end
 		end
-		idfs = {}
 		
-		numOccurences.each do |key, val|
-			idfs[key] = Math.log(numDocuments/val)
-		end
-		
-		idfs
+		return numOccurences
 	end
 		
 

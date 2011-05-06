@@ -6,4 +6,6 @@ log.*
 tmp/**
 *.aux
 *.gz
-
+*.dvi
+*.blg
+*.bbl
