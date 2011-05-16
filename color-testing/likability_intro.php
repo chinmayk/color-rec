@@ -17,7 +17,7 @@ if(isset($_POST['submit'])) {
 		$assignment_id = $_POST['assignment_id'];
 		$_SESSION['assignment_id'] = $assignment_id;
 		// Query for a list of all colors
-		$sql = "SELECT `color_id`, `hex_value` FROM `colors` ORDER BY rand()";
+		$sql = "SELECT DISTINCT `color_category` FROM `colors` ORDER BY rand()";
 		$result = mysql_query($sql, $conn);
 
 		// Check if it was successful
@@ -26,14 +26,12 @@ if(isset($_POST['submit'])) {
     		if(mysql_num_rows($result) == 0) {
         		echo '<p>There are no files in the database</p>';
     		} else {
-	   			$color_array = array();
+	   			$category_array = array();
     			while($row = mysql_fetch_assoc($result)) {
-            		if ($row['hex_value']) {
-            			array_push($color_array, $row);
-        			}
+            		array_push($category_array, $row);
     			}
-        		$_SESSION['random_colors'] = $color_array;
-        		$_SESSION['total_size'] = sizeof($color_array);
+        		$_SESSION['random_categories'] = $category_array;
+        		$_SESSION['total_size'] = sizeof($category_array);
 			?>
        		<meta HTTP-EQUIV="REFRESH" content="0; url=likability_task.php"> 	
 			<?php
@@ -51,7 +49,7 @@ if(isset($_POST['submit'])) {
 		<title>Rate Colors</title>
 	</head>
 	<body>
-		<h3>Your task is to rate a series of colors based on how much you like the color. <br />You will judge how well you like the color on a scale from 1 (Strong dislike) to 7 (Strong like). <br /><br />The task should take about ????????????????? minutes.</h3>
+		<h3>Your task is to rate a series of color palettes based on how much you like the palette. <br />You will judge how well you like the palette on a scale from 1 (Strong dislike) to 7 (Strong like). <br /><br />The task should take about ????????????????? minutes.</h3>
 		<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
 			<!-- <input name="worker_id" type="hidden" value="<?= $_REQUEST['workerId']?>" />
 						<input name="assignment_id" type="hidden" value="<?= $_REQUEST['assignmentId']?>" /> -->
