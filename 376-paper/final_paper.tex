@@ -1,5 +1,5 @@
 \documentclass{article}
-
+\input ../Resources/latex/std-macros
 \usepackage{times}
 \usepackage{uist}
 
@@ -14,7 +14,6 @@
  \toappear{}
 % ------------------------
 
-\bibliographystyle{plain}
 
 \title{Automatically Generating Color Palettes\\for Categorical Values}
 
@@ -90,39 +89,9 @@ blah blah
 \section{DISCUSSION}
 blah
 
-\section{CONCLUSION}
-blah
 
-\section{ACKNOWLEDGMENTS}
-\begin{center}
-\textbf{This section should be left blank for blind review}
-\end{center}
 
-The authors would like to acknowledge the contributions of many previous
-editors in the writing and formatting of this document.  This document is based on
-the {\em CHI '94} format-ting guidelines.
+\bibliographystyle{abbrv}
 
-%%%	You can use bibtex if you like, but I've hardwired in these 
-%%%	references to avoid sending you a separate .bib file.
-\begin{thebibliography}{9}
-
-\bibitem{ACMTerms} How to Classify Works Using ACMÕs Computing
-Classification System. {http://www.acm.org/class/how\_to\_use.html}.
-
-\bibitem{badenov91}  Badenov, B. Effects of prolonged use of WIMP user
-interfaces on Alces americana and Glaucomys volans.
-In {\em Proceedings of UIST '87}
-(February 30--April 1, Graceland, TN), ACM, NY, 1987, pp. 231--240.
-
-\bibitem{henry-etal92} Henry, T.R., Yeatts, A.K., Hudson, S.E., Myers, B.A.,
-and Feiner, S.K.  A nose gesture interface device: Extending virtual realities.
-{\em Presence 1}, 2 (Spring 1992), 258--261.
-
-\bibitem{GenderNeutral} Schwartz, M. Guidelines for Bias-Free Writing.
-Indiana University Press, Bloomington, IN, USA, 1995.
-
-\bibitem{zaranka81} Zaranka, W., Ed. {\em The Brand-X Anthology of Poetry:  A
-Parody Anthology.}  Apple-wood Books, Cambridge, MA, 1981.
-\end{thebibliography}
-
+\bibliography{../Resources/references/color-refs,../Resources/references/recommender-refs}
 \end{document}
