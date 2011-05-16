@@ -1,7 +1,4 @@
-require 'RMagick'
 require 'open-uri'
-include Magick
-
 $LOAD_PATH << '.'
 require 'get-images'
 require 'utils'
@@ -10,7 +7,7 @@ require 'utils'
 #query = "@ladygaga"
 results = []
 
-analyzer = ImageAnalyzer.new
+analyzer = ImageHister.new
 
 
 open('./tmp/input','r') do |f|
@@ -35,11 +32,7 @@ open('./tmp/input','r') do |f|
 		#	results << {"query"=>query, "results"=> analyzer.create_json_for_normalized_hist(result)} 
 		#end
 		
-		kmeans = analyzer.get_clusters_for_query('Apple fruit')
-		
-		kmeans.view.each do |ary|
-			puts "#{ary.length}"
-		end
+		puts "#{analyzer.get_clusters.to_json}"	
 		
 		open("hist.js", "w") do |out|
 			out.write("color_frequencies = #{results.to_json};")

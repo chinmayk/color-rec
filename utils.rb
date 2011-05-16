@@ -8,7 +8,8 @@ require 'get-images'
 require 'color-tools'
 
 include Magick
-class ImageAnalyzer
+
+class ImageHister
 	HIST_HEIGHT = 500
 	
 	L_ACCURACY = 10.0; A_ACCURACY = 10.0; B_ACCURACY = 10.0;
@@ -159,7 +160,7 @@ class ImageAnalyzer
 		#imgList << quantizedImgLAB.first
 		#imgList << quantizedImgHSL.first
 	
-		quantized256LAB = img.quantize 256, LABColorspace, NoDithbind
+		quantized256LAB = img.quantize 256, LABColorspace, NoDitherMethod
 		hist = generate_histogram(quantized256LAB)
 		#Serialize the hisotgram for future use
 		open("#{dir}/serialized-hist", 'w') do |h|
@@ -346,18 +347,38 @@ class ImageAnalyzer
 	end
 	
 	def get_clusters_for_query(query)
-		normalized_hist = renormalize_histogram(0.2)
+		normalized_hist = renormalize_histogram(0.15)
 		#puts "#{normalized_hist['Banana']}"
 		hist_for_query = normalized_hist[query]
 		data = prepare_hist_for_clustering(hist_for_query)
 		
 		kmeans = KMeans.new(data, :centroids =>4)
 		
-		puts "#{kmeans.centroids}"
+		
+		#puts "#{kmeans.centroids}"
 			
 		#puts "#{kmeans}"
 		
 		kmeans
+	end
+	
+	def get_clusters
+		
+		clusters = []
+		(renormalize_histogram).each do |query, result|
+			kmeans = get_clusters_for_query(query)
+			clusters_for_query = {"query" => query, "centroids" => [] }
+			max_value = 0
+			kmeans.centroids.each_with_index do |value, index|
+				frequency = kmeans.view[index].length + 0.15 * Math.sqrt(value.position[1]**2 + value.position[2]**2)
+				max_value = frequency if max_value < frequency
+				
+				clusters_for_query["centroids"] << {"rgba" => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2]), "frequency" => frequency}
+			end
+			clusters_for_query['max'] = max_value
+			clusters << clusters_for_query	
+		end
+		clusters
 	end
 	
 	def create_json_for_normalized_hist (hist)
