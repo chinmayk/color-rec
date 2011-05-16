@@ -14,7 +14,7 @@ class ImageAnalyzer
 	L_ACCURACY = 10.0; A_ACCURACY = 10.0; B_ACCURACY = 10.0;
 
 	def initialize
-		@topic_hist = []
+		@topic_hist = {}
 	end
 	
 	def generate_histogram(imgList, numColors = 256, space = LABColorspace)
@@ -35,6 +35,10 @@ class ImageAnalyzer
 	end
 	
 	def json_for_query(query)
+		process_query query
+	end
+	
+	def process_query(query)
 		encoded_query = URI.encode(query)
 		Dir.chdir('./data') unless Dir.getwd.include? 'data'
 		
@@ -45,7 +49,7 @@ class ImageAnalyzer
 		
 		hist = process_directory(encoded_query)
 		
-		hist_to_json(hist)
+		hist_to_json(hist, query)
 	end
 	
 	def draw_histogram(histogramHash)
@@ -164,7 +168,7 @@ class ImageAnalyzer
 		return hist
 	end
 	
-	def hist_to_json(hist)
+	def hist_to_json(hist, query)
 		#Assume the hist is a hash
 		out_hist = []
 		query_bins = {}
@@ -241,7 +245,7 @@ class ImageAnalyzer
 					"approximate_colors" => approximate_colors,
 					"max_binned_frequency" => max_binned_frequency
 					}
-		@topic_hist << query_bins
+		@topic_hist[query] = query_bins
 		out_data
 	end
 	
@@ -259,13 +263,15 @@ class ImageAnalyzer
 	end
 	
 	def topic_info
-
-		out_hist = []
+		
 		#Find out total occurences for each bin
 		total_occ = total_occurences(@topic_hist)
+		out_hist = []
 		max_binned_frequency = 0
 		total_occ.each do |key, val|
-			rgba = (@topic_hist.detect {|b| b.has_key? key })[key]['values'][0]
+			rgba = (@topic_hist.values.detect {|b| 
+				b.has_key? key })[key]['values'][0]
+
 			rgba['frequency'] = val
 			max_binned_frequency = val if val > max_binned_frequency
 			out_hist[key[0]] ||= []
@@ -281,18 +287,119 @@ class ImageAnalyzer
 		
 		outer_hist
 	end
+	
+	
+	#Renormalize the histogram based on the average number of occurences in a particular bin
+	#alpha: the fraction of the average that should be used
+	#Old = alpha*average + (1-alpha)*new
+	#=>  new = (old - alpha*average)/(1-alpha)
+	def renormalize_histogram(alpha = 0.5)
+		total_occ = total_occurences(@topic_hist)
+		
+		return @normalized_topic_hist unless @normalized_topic_hist.nil?
+		
+		#Cache this normalization
+		@normalized_topic_hist = {}
+		@topic_hist.each do |query, val|
+			val.each do |bin, value|
+				#puts "#{val['frequency']} vs average of #{total_occ[bin]}."
+				@normalized_topic_hist[query] ||= {}
+				@normalized_topic_hist[query][bin] = value
+				@normalized_topic_hist[query][bin]['frequency'] = (value['frequency'] - alpha*total_occ[bin])/(1.0-alpha)
+				#puts "Processed bin #{bin} for #{query}: #{@normalized_topic_hist[query][bin]}\n\n "
+				
+				#Find the centroid of the changed distribution
+				centroid = centroid_of(@normalized_topic_hist[query][bin]['values'])
+				
+				#puts "#{@normalized_topic_hist[query][bin]}"
+				@normalized_topic_hist[query][bin]['centroid'] = centroid
+				
+				closest_pixel = @normalized_topic_hist[query][bin]['values'].min {|a,b| ColorTools.LABDistance(a['lab'],centroid) <=> ColorTools.LABDistance(b['lab'], centroid)}
+				#puts "#{closest_pixel}"	
+				@normalized_topic_hist[query][bin]['closest_pixel'] = closest_pixel
+				
+			end
+					#puts "#{@normalized_topic_hist[query]}"
 
-	#IDF with weight. The weight is the number
-	#Dammit this results in a -Infinity for some reason.
+		end
+		@normalized_topic_hist
+	end
+	
+	def prepare_hist_for_clustering(hist)
+		
+		prepared_array = []
+		
+		
+		hist.each do |key, value|
+			puts
+			numPixels = value['frequency']/1000
+			
+			#this is silly, but neccessary since the kmeans library requires data POINTS, not frequencies
+			#I know I will perish in hell for this someday
+			 numPixels.floor.times do 
+			 	#puts "#{value['closest_pixel']}"
+			 	prepared_array << [ value['closest_pixel']['lab']['l'], value['closest_pixel']['lab']['a'], value['closest_pixel']['lab']['b']]
+			 end
+		end
+		#puts "#{prepared_array}"
+		prepared_array
+	end
+	
+	def get_clusters_for_query(query)
+		normalized_hist = renormalize_histogram(0.2)
+		#puts "#{normalized_hist['Banana']}"
+		hist_for_query = normalized_hist[query]
+		data = prepare_hist_for_clustering(hist_for_query)
+		
+		kmeans = KMeans.new(data, :centroids =>4)
+		
+		puts "#{kmeans.centroids}"
+			
+		#puts "#{kmeans}"
+		
+		kmeans
+	end
+	
+	def create_json_for_normalized_hist (hist)
+		out_hist = []
+		max_binned_frequency = 0
+		hist.each do |key, val|
+			rgba = val['closest_pixel']
+
+			rgba['frequency'] = val['frequency']
+			max_binned_frequency = val['frequency'] if val['frequency'] > max_binned_frequency
+			out_hist[key[0]] ||= []
+			
+			 out_hist[key[0]] << {"closest_pixel" => rgba,
+				"lab" => {'l' => key[0], 'a' => key[1], 'b' => key[2]},
+				"frequency" => val}
+		end
+		
+		
+		#out_hist
+		outer_hist = {'approximate_colors' => out_hist, 'max_binned_frequency' => max_binned_frequency}
+		
+		outer_hist
+	end
+	
+
+	#Average bin occurences
 	def total_occurences(topic_hist)
+		numDocuments = topic_hist.length
+		
 		numOccurences = {} 
-		topic_hist.each do |doc|
+		topic_hist.each do |query,doc|
 			doc.each do |key, val|
 				unless numOccurences.has_key? key
 					numOccurences[key] = 0 
 				end
 				numOccurences[key] += val['frequency']
 			end
+		end
+		
+		#Renormalize by the number of documents
+		numOccurences.each do |key, val|
+			numOccurences[key] /= numDocuments
 		end
 		
 		return numOccurences

@@ -23,15 +23,29 @@ open('./tmp/input','r') do |f|
 					`mkdir -p #{URI.encode(query)}`
 					dump_from_google(query, URI.encode(query))
 				end
-				results << {"query"=>query, "results"=> analyzer.json_for_query(query)} 
+				analyzer.process_query(query)
+				
+				#results << {"query"=>query, "results"=> analyzer.json_for_query(query)} 
 			end
 		end
 		
 		results << {"query"=> "Total", "results" => analyzer.topic_info}
 		
+		#(analyzer.renormalize_histogram).each do |query, result|
+		#	results << {"query"=>query, "results"=> analyzer.create_json_for_normalized_hist(result)} 
+		#end
+		
+		kmeans = analyzer.get_clusters_for_query('Apple fruit')
+		
+		kmeans.view.each do |ary|
+			puts "#{ary.length}"
+		end
+		
 		open("hist.js", "w") do |out|
 			out.write("color_frequencies = #{results.to_json};")
 		end
+		
+		
 	end	
 end
 #Dir.chdir('./data') 
