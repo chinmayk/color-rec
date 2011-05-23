@@ -32,7 +32,28 @@ open('./tmp/input','r') do |f|
 		#	results << {"query"=>query, "results"=> analyzer.create_json_for_normalized_hist(result)} 
 		#end
 		
-		puts "#{analyzer.get_clusters.to_json}"	
+		results = analyzer.get_clusters
+		puts "#{results.to_json}"	
+		
+		#Example SQL
+		#INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`) 
+		#VALUES (NULL, '050215', 'fruits', 'apple', 'test'), (NULL, '5F462A', 'fruits', 'apple', 'test')
+		
+		category_name = "fruits"
+		source_name = "autoinsert"
+		result_strs = []
+		sql_string = 'INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`) VALUES '
+		
+		results.each do |result|
+			result[:centroids].each do |cluster|
+				result_strs << "(NULL, '#{cluster[:rgba]}', '#{category_name}', '#{result[:query]}', '#{source_name}', '#{cluster[:frequency]}')"
+			end
+			
+		end
+		
+		result_str = result_strs.join(', ')
+		
+		puts sql_string + result_str
 		
 		open("hist.js", "w") do |out|
 			out.write("color_frequencies = #{results.to_json};")

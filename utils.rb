@@ -6,6 +6,7 @@ require 'open-uri'
 $LOAD_PATH << '.'
 require 'get-images'
 require 'color-tools'
+require 'mysql'
 
 include Magick
 
@@ -346,11 +347,20 @@ class ImageHister
 		prepared_array
 	end
 	
-	def get_clusters_for_query(query)
+	def get_clusters_for_query(query, dump_data = true)
 		normalized_hist = renormalize_histogram(0.15)
 		#puts "#{normalized_hist['Banana']}"
 		hist_for_query = normalized_hist[query]
 		data = prepare_hist_for_clustering(hist_for_query)
+		
+		if dump_data
+			open("#{query}.csv", 'w') do |f|
+				data.each do |bin|
+					#L, A, B
+					f.write("#{bin[0]}, #{bin[1]}, #{bin[2]}\n")
+				end
+			end
+		end
 		
 		kmeans = KMeans.new(data, :centroids =>4)
 		
@@ -367,15 +377,15 @@ class ImageHister
 		clusters = []
 		(renormalize_histogram).each do |query, result|
 			kmeans = get_clusters_for_query(query)
-			clusters_for_query = {"query" => query, "centroids" => [] }
+			clusters_for_query = {:query=> query, :centroids => [] }
 			max_value = 0
 			kmeans.centroids.each_with_index do |value, index|
 				frequency = kmeans.view[index].length + 0.15 * Math.sqrt(value.position[1]**2 + value.position[2]**2)
 				max_value = frequency if max_value < frequency
 				
-				clusters_for_query["centroids"] << {"rgba" => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2]), "frequency" => frequency}
+				clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency}
 			end
-			clusters_for_query['max'] = max_value
+			clusters_for_query[:max] = max_value
 			clusters << clusters_for_query	
 		end
 		clusters
