@@ -47,7 +47,7 @@ if($result) {
 	die('Error: ' . mysql_error());
 }
 
-$sql = "SELECT * FROM `colors` WHERE NOT (`color_category`='$color_category' AND `color_item`='$color_item') ORDER BY rand() LIMIT 0, 3";
+$sql = "SELECT * FROM `colors` WHERE NOT (`color_category`='$color_category' AND `color_item`='$color_item') ORDER BY rand() LIMIT 0, 1";
 $result = mysql_query($sql, $conn);
 if($result) {
 	if(mysql_num_rows($result) == 0) {
