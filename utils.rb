@@ -383,12 +383,35 @@ class ImageHister
 				frequency = kmeans.view[index].length + 0.15 * Math.sqrt(value.position[1]**2 + value.position[2]**2)
 				max_value = frequency if max_value < frequency
 				
-				clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency}
+				clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency, :l => value.position[0], :a => value.position[1], :b => value.position[2]}
 			end
 			clusters_for_query[:max] = max_value
-			clusters << clusters_for_query	
+			clusters << clusters_for_query
 		end
 		clusters
+	end
+	
+	def get_palette
+		results = get_clusters
+		
+		#Now, try and get palette. 
+		#Palette properties: 
+		# => Should be perceptually separated
+		# => Should have relevance of colors
+		# Let's simply try and create a "good" palette, regardless of the computational costs
+		# So, let's try all combinations and see which ones rank highest on each
+		
+		#FIXME Yeah, magic call. Should be a minor refactor
+		clusters = get_clusters
+		
+		scores = {}
+		
+		clusters.each do |p| # Query 1
+			clusters.each do |q| # Query 2
+				
+			end
+		end
+		
 	end
 	
 	def create_json_for_normalized_hist (hist)

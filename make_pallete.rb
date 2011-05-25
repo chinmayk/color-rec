@@ -39,7 +39,7 @@ open('./tmp/input','r') do |f|
 		#INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`) 
 		#VALUES (NULL, '050215', 'fruits', 'apple', 'test'), (NULL, '5F462A', 'fruits', 'apple', 'test')
 		
-		category_name = "fruits"
+		category_name = "countries"
 		source_name = "autoinsert"
 		result_strs = []
 		sql_string = 'INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`) VALUES '
