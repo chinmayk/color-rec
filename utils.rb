@@ -1,19 +1,19 @@
 require'rmagick'
 require 'json'
-require 'k_means'
 require 'open-uri'
 
 $LOAD_PATH << '.'
 require 'get-images'
 require 'color-tools'
 require 'mysql'
+require 'K-Means/lib/k_means'
 
 include Magick
 
 class ImageHister
 	HIST_HEIGHT = 500
 	
-	L_ACCURACY = 10.0; A_ACCURACY = 10.0; B_ACCURACY = 10.0;
+	L_ACCURACY = 5.0; A_ACCURACY = 10.0; B_ACCURACY = 10.0;
 
 	def initialize
 		@topic_hist = {}
@@ -22,8 +22,8 @@ class ImageHister
 	def generate_histogram(imgList, numColors = 256, space = LABColorspace)
 		histogram = {}
 		begin
-			quantizedImg = imgList.quantize numColors, space, NoDitherMethod
-		
+			#quantizedImg = imgList.quantize numColors, space, NoDitherMethod
+			quantizedImg = imgList
 			print "Generating histogram"
 			quantizedImg.each do |i|
 				print "."
@@ -142,13 +142,13 @@ class ImageHister
 		files.collect!{|f| "#{dir}/#{f}"}
 		img = ImageList.new
 	
-		files.each{|f| Image.read(f).each do |i| img << i end }
+		files.each{|f| Image.read(f).each do |i| img << i.sample(60,60) end }
 	
-		imgList = img.copy
-		quantizedImgLAB = img.quantize 10, LABColorspace, NoDitherMethod
+		#imgList = img.copy
+		#quantizedImgLAB = img.quantize 10, LABColorspace, NoDitherMethod
 		#quantizedImgHSL = img.quantize 10, HSLColorspace, NoDitherMethod
 	
-		reducedImgLAB = quantizedImgLAB.unique_colors
+		#reducedImgLAB = quantizedImgLAB.unique_colors
 		#reducedImgHSL = quantizedImgHSL.unique_colors
 	
 		#reducedImgLAB.change_geometry!('400x240') { |cols, rows, img|
@@ -161,8 +161,11 @@ class ImageHister
 		#imgList << quantizedImgLAB.first
 		#imgList << quantizedImgHSL.first
 	
-		quantized256LAB = img.quantize 256, LABColorspace, NoDitherMethod
-		hist = generate_histogram(quantized256LAB)
+		#quantized256LAB = img.quantize 256, LABColorspace, NoDitherMethod
+		#hist = generate_histogram(quantized256LAB)
+		sampledImage = img
+		hist = generate_histogram(sampledImage)
+		
 		#Serialize the hisotgram for future use
 		open("#{dir}/serialized-hist", 'w') do |h|
 			h.write(Marshal::dump(hist))
@@ -347,11 +350,21 @@ class ImageHister
 		prepared_array
 	end
 	
-	def get_clusters_for_query(query, dump_data = true)
+	def get_clusters_for_query(query, dump_data = false)
 		normalized_hist = renormalize_histogram(0.15)
 		#puts "#{normalized_hist['Banana']}"
 		hist_for_query = normalized_hist[query]
-		data = prepare_hist_for_clustering(hist_for_query)
+		#data = prepare_hist_for_clustering(hist_for_query)
+		puts "Histogram for #{query} has #{hist_for_query.length} bins"
+		data = []
+		counts = []
+		hist_for_query.each do |key, value|
+			unless value['frequency'] <= 0
+				counts << value['frequency']/1000
+		 		data << [value['closest_pixel']['lab']['l'], value['closest_pixel']['lab']['a'], value['closest_pixel']['lab']['b']]
+		 	end
+		end
+		
 		
 		if dump_data
 			open("#{query}.csv", 'w') do |f|
@@ -362,12 +375,7 @@ class ImageHister
 			end
 		end
 		
-		kmeans = KMeans.new(data, :centroids =>4)
-		
-		
-		#puts "#{kmeans.centroids}"
-			
-		#puts "#{kmeans}"
+		kmeans = KMeans.new(data, {:centroids =>4, :counts => counts})
 		
 		kmeans
 	end
@@ -380,9 +388,8 @@ class ImageHister
 			clusters_for_query = {:query=> query, :centroids => [] }
 			max_value = 0
 			kmeans.centroids.each_with_index do |value, index|
-				frequency = kmeans.view[index].length + 0.15 * Math.sqrt(value.position[1]**2 + value.position[2]**2)
+				frequency = value.weight + 0.15 * Math.sqrt(value.position[1]**2 + value.position[2]**2)
 				max_value = frequency if max_value < frequency
-				
 				clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency, :l => value.position[0], :a => value.position[1], :b => value.position[2]}
 			end
 			clusters_for_query[:max] = max_value
