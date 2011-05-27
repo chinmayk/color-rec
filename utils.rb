@@ -360,7 +360,7 @@ class ImageHister
 		counts = []
 		hist_for_query.each do |key, value|
 			unless value['frequency'] <= 0
-				counts << value['frequency']/1000
+				counts << value['frequency']/100 +  0.01* Math.sqrt(value['closest_pixel']['lab']['a']**2 + value['closest_pixel']['lab']['b']**2)
 		 		data << [value['closest_pixel']['lab']['l'], value['closest_pixel']['lab']['a'], value['closest_pixel']['lab']['b']]
 		 	end
 		end
@@ -388,7 +388,7 @@ class ImageHister
 			clusters_for_query = {:query=> query, :centroids => [] }
 			max_value = 0
 			kmeans.centroids.each_with_index do |value, index|
-				frequency = value.weight + 0.15 * Math.sqrt(value.position[1]**2 + value.position[2]**2)
+				frequency = value.weight
 				max_value = frequency if max_value < frequency
 				clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency, :l => value.position[0], :a => value.position[1], :b => value.position[2]}
 			end

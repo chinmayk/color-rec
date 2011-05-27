@@ -60,7 +60,9 @@ open('./tmp/input','r') do |f|
 		end
 		
 		
-	end	
+	end
+	
+	puts "\b"	
 end
 #Dir.chdir('./data') 
 
