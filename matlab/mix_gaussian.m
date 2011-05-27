@@ -23,25 +23,36 @@ while(~feof(inFile))
         b_labs = reshape(lab(:,:,3)',[], 1);
         
         population = [ ls as b_labs];
-        
+            
         results = [results; population(randsample(size(population,1), 1000),:)];
         
         %fprintf(outFid, '%.3f\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f\n',results);
         
     end
+    
+
+        
+
     fclose(outFid);
 end
 
+    %Calculate the model
+
+    BIC = zeros(1,4);
+    obj = cell(1,4);
+    for k = 1:4
+        obj{k} = gmdistribution.fit(results,k, 'SharedCov', true);
+        BIC(k)= obj{k}.BIC;
+    end
+    [minAIC,numComponents] = min(BIC);
+    model = obj{numComponents}
+    for i = 1:numComponents
+        rgb = reshape(Lab2RGB(model.mu(i,1), model.mu(i,2), model.mu(i,3)),1,3)
+        %print out the value
+        sprintf('%02X%02X%02X', rgb)        
+    end
+
 fclose(inFile);
 
-%Calculate the model
 
-BIC = zeros(1,4);
-obj = cell(1,4);
-for k = 1:4
-    obj{k} = gmdistribution.fit(results,k);
-    BIC(k)= obj{k}.BIC;
-end
 
-[minAIC,numComponents] = min(BIC);
-model = obj{numComponents}
