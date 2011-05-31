@@ -12,7 +12,7 @@ $curr_size = sizeof($random_categories);
 $category_number = $total_size - $curr_size + 1;
 
 if ($curr_size == 0) {
-	header('Location: thanks.php');
+	header('Location: feedback.php');
 }
 
 if(isset($_POST['submit'])) {
@@ -47,7 +47,7 @@ if($result) {
 	die('Error: ' . mysql_error());
 }
 
-$sql = "SELECT * FROM `colors` WHERE NOT (`color_category`='$color_category' AND `color_item`='$color_item') ORDER BY rand() LIMIT 0, 3";
+$sql = "SELECT * FROM `colors` WHERE `color_category`='random' ORDER BY rand() LIMIT 0, 1";
 $result = mysql_query($sql, $conn);
 if($result) {
 	if(mysql_num_rows($result) == 0) {
@@ -117,9 +117,13 @@ $_SESSION['random_categories'] = $random_categories;
 					echo "<td width=100px height=100px bgcolor='#".$curr_color['hex_value']."'></td>";
 					echo "</tr>";
 				}
+				echo "<tr>";
+				echo "<td><input type='radio' name='color_id' value='0'></td>";
+				echo "<td width=100px height=100px'>none of the above</td>";
+				echo "</tr>";
 				?>
 			</table>
 			<input name="submit" type="submit" value="Next" onclick="validate(); return false;"/>
 		</form>
-		</body>
+	</body>
 </html>

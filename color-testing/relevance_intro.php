@@ -28,7 +28,11 @@ if(isset($_POST['submit'])) {
     		} else {
 	   			$category_array = array();
     			while($row = mysql_fetch_assoc($result)) {
-            		array_push($category_array, $row);
+            		if($row['color_category'] != 'none') {
+						if($row['color_category'] != 'random') {
+							array_push($category_array, $row);
+						}
+					}
     			}
         		$_SESSION['random_categories'] = $category_array;
         		$_SESSION['total_size'] = sizeof($category_array);
@@ -47,15 +51,37 @@ if(isset($_POST['submit'])) {
 <html>
 	<head>
 		<title>Rate Colors</title>
+		
+		<script type="text/javascript">
+		function accepted() {
+			valid = true;
+			var elems = document.turkInfo.elements;
+			var name;
+			var checkCount = 0;
+			for (var i = 0; i < elems.length - 1; i++) {
+				var type = elems[i].type;
+				name = elems[i].name;	
+				if (type == "hidden") {
+					if (elems[i].value == "") {
+						valid = false;
+					}
+				}
+			}
+			if (valid) {
+				var form = document.getElementById("turkInfo");
+				form.submit();
+			} else {
+				alert("Please accept this HIT.");
+			}
+		}
+		</script>
 	</head>
 	<body>
-		<h3>You will see a series of topics. <br />Your task is to decide which color is most relevant to the topic. <br /><br />The task should take about ????????????????? minutes.</h3>
-		<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
-			<!-- <input name="worker_id" type="hidden" value="<?= $_REQUEST['workerId']?>" />
-						<input name="assignment_id" type="hidden" value="<?= $_REQUEST['assignmentId']?>" /> -->
-			<input name="worker_id" type="hidden" value="<?= $_GET['workerId']?>" />
-			<input name="assignment_id" type="hidden" value="<?= $_GET['assignmentId']?>" />
-			<input name="submit" type="submit" value="Next" />
+		<h3>You will see a series of topics. <br />Your task is to decide which color is most relevant to the topic. <br /><br />The task should take about 5 minutes.</h3>
+		<form name="turkInfo" action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
+			<input name="worker_id" type="hidden" value="<?= $_REQUEST['workerId']?>" />
+			<input name="assignment_id" type="hidden" value="<?= $_REQUEST['assignmentId']?>" />
+			<input name="submit" type="submit" value="Next" onclick="accepted(); return false;" />
 		</form>
 	</body>
 </html>
