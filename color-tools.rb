@@ -152,7 +152,7 @@ class ColorTools
 		xyz = {:x => REF_X*x, :y => REF_Y*y, :z=>REF_Z*z}
 	end
 	
-	def self.xyz2RGB(pixel)
+	def self.xyz2RGB(pixel, force_hex = false)
 		x = pixel[:x] / 100;        
 		y = pixel[:y] / 100;        
 		z = pixel[:z] / 100;        
@@ -184,13 +184,16 @@ class ColorTools
 		
 		#min to 0
 		r = 0 if r < 0; g = 0 if g < 0; b = 0 if b < 0;
-		
-		rgb = "(#{(r*255).round}, #{(g*255).round}, #{(b*255).round}, 1)"
+		unless force_hex
+			rgb = "(#{(r*255).round}, #{(g*255).round}, #{(b*255).round}, 1)"
+		else
+			rgb = "%02X%02X%02X" % [(r*255).round, (g*255).round, (b*255).round]#{(r*255).round}, #{(g*255).round}, #{(b*255).round}, 1)"
+		end
 		return rgb;
 	end
 	
-	def self.lab2RGB(l,a,b)
-		xyz2RGB lab2xyz l,a,b
+	def self.lab2RGB(l,a,b, force_hex = false)
+		xyz2RGB((lab2xyz l,a,b),force_hex)
 	end
 	
 	

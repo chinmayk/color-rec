@@ -48,6 +48,7 @@ if($result) {
 }
 
 $sql = "SELECT * FROM `colors` WHERE `color_category`='random' ORDER BY rand() LIMIT 0, 1";
+
 $result = mysql_query($sql, $conn);
 if($result) {
 	if(mysql_num_rows($result) == 0) {
@@ -125,5 +126,10 @@ $_SESSION['random_categories'] = $random_categories;
 			</table>
 			<input name="submit" type="submit" value="Next" onclick="validate(); return false;"/>
 		</form>
+<<<<<<< HEAD
 	</body>
 </html>
+=======
+		</body>
+</html>
+>>>>>>> 41f6c4bda37dceabe5f0f31330092487388c81c6

@@ -9,3 +9,5 @@ tmp/**
 *.dvi
 *.blg
 *.bbl
+*.m~
+
