@@ -375,31 +375,36 @@ class ImageHister
 			end
 		end
 		
-		kmeans = KMeans.new(data, {:centroids =>4, :counts => counts})
+		kmeans = KMeans.new(data, {:centroids =>4, :counts => counts, :distance_measure => :euclidean_distance})
 		
 		kmeans
 	end
 	
 	def get_clusters
-		
-		clusters = []
-		(renormalize_histogram).each do |query, result|
-			kmeans = get_clusters_for_query(query)
-			clusters_for_query = {:query=> query, :centroids => [] }
-			max_value = 0
-			kmeans.centroids.each_with_index do |value, index|
-				frequency = value.weight
-				max_value = frequency if max_value < frequency
-				clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency, :l => value.position[0], :a => value.position[1], :b => value.position[2]}
+		if @clusters.nil?
+			clusters = []
+			(renormalize_histogram).each do |query, result|
+				kmeans = get_clusters_for_query(query)
+				clusters_for_query = {:query=> query, :centroids => [] }
+				max_value = 0
+				kmeans.centroids.each_with_index do |value, index|
+					frequency = value.weight
+					max_value = frequency if max_value < frequency
+					clusters_for_query[:centroids] << {:rgba => ColorTools.lab2RGB(value.position[0], value.position[1], value.position[2], true), :frequency => frequency, :l => value.position[0], :a => value.position[1], :b => value.position[2]}
+				end
+				clusters_for_query[:centroids].sort! do |a,b|
+					b[:frequency] <=> a[:frequency]
+				end
+				clusters_for_query[:max] = max_value
+				clusters << clusters_for_query
 			end
-			clusters_for_query[:max] = max_value
-			clusters << clusters_for_query
-		end
-		clusters
+			
+			@clusters = clusters
+		end		
+		return @clusters
 	end
 	
 	def get_palette
-		results = get_clusters
 		
 		#Now, try and get palette. 
 		#Palette properties: 
@@ -407,18 +412,186 @@ class ImageHister
 		# => Should have relevance of colors
 		# Let's simply try and create a "good" palette, regardless of the computational costs
 		# So, let's try all combinations and see which ones rank highest on each
+
+
+		#Four different palettes.
+		#1 frequency with color sep
+		#2 saturation with color sep
+		#3 largest distance (color sep moot here)
+		#4 random
+		palette_info = []
 		
-		#FIXME Yeah, magic call. Should be a minor refactor
+		palette_frequency = []
+		palette_saturation = []
+		palette_distance = []
+		palette_random = []
+		
 		clusters = get_clusters
 		
-		scores = {}
-		
-		clusters.each do |p| # Query 1
-			clusters.each do |q| # Query 2
-				
-			end
+		clusters.each do |term|
+			palette_frequency << term[:centroids].first
 		end
 		
+		clusters_by_saturation = clusters.clone
+		clusters_by_saturation.each do |term|
+			term[:centroids].sort! do |a, b|
+				(b[:a]** 2 + b[:b] ** 2) <=> (a[:a]** 2 + a[:b] ** 2) 
+			end
+			
+			palette_saturation << term[:centroids].first
+		end
+		
+		clusters_by_distance = clusters.clone
+		clusters_by_distance.each do |term|
+			palette_distance << term[:centroids][rand(term[:centroids].length)]
+			
+			#Also do this for random
+			palette_random << term[:centroids][rand(term[:centroids].length)]
+		end
+
+
+		
+		converged = false
+		threshold = 50
+		iterations = 0
+		while iterations < 100
+			palette_frequency.each_with_index do |pal_a, idx_a|
+				palette_frequency.each_with_index do |pal_b, idx_b|
+					candidates = nil
+					next if idx_a == idx_b
+					
+					if ColorTools.LABDistance(pal_a, pal_b) <  threshold #10 times JND
+						#Find a color with lower frequency
+						candidates = []
+						[idx_a, idx_b].each_with_index do |cluster_idx, idx|
+							clusters[cluster_idx][:centroids].each do |candidate|
+								other_palette = (idx == 0) ? pal_b : pal_a
+								if ColorTools.LABDistance(candidate, other_palette) < threshold
+									candidates[idx] = candidate
+									candidates[idx][:quality] = candidate[:frequency]/clusters[idx_a][:max]
+									break
+								end
+							end
+						end
+						
+						next if candidates.empty? #we found no candidates. Nothing we can do.
+						#else
+						#Choose among the two candidates
+						if (candidates[0][:quality] > candidates[1][:quality]) #replace pal_a
+							palette_frequency[idx_a] = candidates[0]
+						else
+							palette_frequency[idx_b] = candidates[1]
+						end 
+						
+						#replace = candidate_from == 1 ? idx_a : idx_b
+						#palette[replace] = candidate 
+					else
+						next
+					end
+				end
+			end
+			
+			#Same for saturation
+			palette_saturation.each_with_index do |pal_a, idx_a|
+				palette_saturation.each_with_index do |pal_b, idx_b|
+					candidates = nil
+					next if idx_a == idx_b
+					
+					if ColorTools.LABDistance(pal_a, pal_b) <  threshold #10 times JND
+						#Find a color with lower frequency
+						candidates = []
+						[idx_a, idx_b].each_with_index do |cluster_idx, idx|
+							clusters[cluster_idx][:centroids].each do |candidate|
+								other_palette = (idx == 0) ? pal_b : pal_a
+								if ColorTools.LABDistance(candidate, other_palette) < threshold
+									candidates[idx] = candidate
+									candidates[idx][:quality] = candidate[:a]**2 + candidate[:b] ** 2
+									break
+								end
+							end
+						end
+						
+						next if candidates.empty? #we found no candidates. Nothing we can do.
+						#else
+						#Choose among the two candidates
+						if (candidates[0][:quality] > candidates[1][:quality]) #replace pal_a
+							palette_saturation[idx_a] = candidates[0]
+							palette_saturation[idx_b] = candidates[1]
+						end 
+						
+						#replace = candidate_from == 1 ? idx_a : idx_b
+						#palette[replace] = candidate 
+					else
+						next
+					end
+				end
+			end
+			
+			#For distance
+			palette_distance.each_with_index do |pal_a, idx_a|
+				palette_distance.each_with_index do |pal_b, idx_b|
+					candidates = nil
+					next if idx_a == idx_b
+					
+					if true #Always try to maximize distance ColorTools.LABDistance(pal_a, pal_b) <  threshold #10 times JND
+						#Find a color with lower frequency
+						candidates = []
+						
+						#Choose two random centroids
+						candidate_a = clusters[idx_a][:centroids][rand(clusters[idx_a][:centroids].length)]
+						#puts "candidate a = #{candidate_a}"
+						
+						candidate_b = clusters[idx_b][:centroids][rand(clusters[idx_b][:centroids].length)]
+						#puts "candidate b = #{candidate_b}"
+						
+						if ColorTools.LABDistance(candidate_a, pal_b) > ColorTools.LABDistance(pal_a, pal_b)
+							candidates[0] = candidate_a
+							candidates[0][:quality] = ColorTools.LABDistance(candidate_a, pal_b)
+						end
+						
+						if ColorTools.LABDistance(candidate_b, pal_a) > ColorTools.LABDistance(pal_a, pal_b)
+							candidates[1] = candidate_b
+							candidates[1][:quality] = ColorTools.LABDistance(candidate_b, pal_a)
+						end
+						
+						next if candidates.empty? #we found no candidates. Nothing we can do.
+						
+						#puts "Else block: a= #{candidates[0]}\n b = #{candidates[1]}"
+						#else
+						#Choose among the two candidates
+						if (!candidates[0].nil? &&
+							(candidates[1].nil?  ||  candidates[0][:quality] > candidates[1][:quality])) #replace pal_a
+							palette_distance[idx_a] = candidates[0]
+						else
+							palette_distance[idx_b] = candidates[1]
+						end 
+						
+						#replace = candidate_from == 1 ? idx_a : idx_b
+						#palette[replace] = candidate 
+					else
+						next
+					end
+				end
+			end
+			
+			iterations += 1
+		end
+		
+		
+		
+		#Associate queries
+		clusters.each_with_index do |c, i|
+			[palette_frequency, palette_saturation, palette_random, palette_distance].each do |palette|
+				palette[i][:query] = c[:query]
+			end 
+		end
+		
+		palette_info = [{:algorithm => "frequency", :palette => palette_frequency},
+						{:algorithm => "saturation",:palette => palette_saturation},
+						{:algorithm => "random",:palette => palette_random},
+						{:algorithm => "distance",:palette => palette_distance}]
+		
+		return palette_info
 	end
 	
 	def create_json_for_normalized_hist (hist)
@@ -486,4 +659,11 @@ module DistanceMeasures
 
 		return hue_diff + sat_lum_diff + alpha_diff
 	end
+	
+	def weighted_euclidean(other)
+		(self.euclidean_distance(other))*1.5
+	end
 end
+
+
+
