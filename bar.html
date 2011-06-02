@@ -12,6 +12,21 @@ body {
   font: 11px sans-serif;
 }
 
+h2 {
+	color: gray;
+	font: 16px;
+}
+
+#palette-holder {
+	border: 1px solid steelBlue;
+	padding: 10px;
+	width: 600px;	
+}
+h2 em {
+	font-style: normal;
+	color: steelBlue;
+}
+
 svg {
   shape-rendering: crispEdges;
 }
@@ -60,11 +75,23 @@ button:hover {
   </head>
   <body>
 
-  	
   	<div id="controls">
+  		
+  	<div id="palette-holder">
+  		<h2>Try <em>a built-in palette</em> below.</h2>
+  	</div>
+  	<div><h2>Or, <em>customize</em> by clicking each bar until you get what you want.</h2></div>
+  	<div><h2>Or, <em>Choose your own color</em></h2>
+  		<input type="text" id="color-hex"></input>
+  		
   	</div>
   	
-  	<div id="graphic"></div>
+  	</div>
+  	
+  	<div id="graphic">
+  		
+  		
+  	</div>
     	
     <script type="text/javascript">
     
@@ -77,7 +104,7 @@ data = [{"query": "Stanford Cardinal", "wins": 20}, {"query": "Cal Bears", "wins
 chosen_palette = 0;
 
 chosen_colors = {};
-d3.select("#controls").selectAll(".palette-choices")
+d3.select("#palette-holder").selectAll(".palette-choices")
       .data(palettes)
       .enter()
       .append("button")
@@ -204,11 +231,13 @@ function changeColor(element, i) {
 }
 
 function showColorTools(element, i) {
+	
+	chosen_index = chosen_colors[i] || 0;
+	$("#color-hex").val('#' + colors[i].centroids[chosen_index].rgba);
 	d3.select(element)
 	.transition()
 	      .duration(100)
-	      .attr("opacity", 0.7)
-	      ;
+	      .attr("opacity", 0.7);
 }
 
 function hideColorTools(element, i) {
