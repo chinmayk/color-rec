@@ -9,7 +9,7 @@
     <style type="text/css">
 
 body {
-  font: 10px sans-serif;
+  font: 11px sans-serif;
 }
 
 svg {
@@ -17,7 +17,7 @@ svg {
 }
 
 .palette-choices {
-	font: 16px sans-serif;
+	font: 24px sans-serif;
 	cursor: pointer;
 }
 
@@ -75,6 +75,8 @@ data = [{"query": "Stanford Cardinal", "wins": 20}, {"query": "Cal Bears", "wins
 {"query": "Oregon Ducks", "wins": 21}];
 
 chosen_palette = 0;
+
+chosen_colors = {};
 d3.select("#controls").selectAll(".palette-choices")
       .data(palettes)
       .enter()
@@ -88,8 +90,8 @@ d3.select("#controls").selectAll(".palette-choices")
       	})
       .text(function(d,i) {return d.algorithm;});
 
-var w = 430,
-    h = 230,
+var w = 860,
+    h = 460,
     palette_h = 200,
     x = d3.scale.linear().domain([0, 30]).range([0, w]),
     y = d3.scale.ordinal().domain(d3.range(data.length)).rangeBands([0, h], .2),
@@ -106,21 +108,23 @@ var bars = vis.selectAll("g.bar")
     .data(data)
   .enter().append("svg:g")
     .attr("class", "bar")
-    .attr("transform", function(d, i) { return "translate(0," + y(i) + ")"; });
+    .attr("transform", function(d, i) { return "translate(0," + y(i) + ")"; })
+    .on("mouseover", function(d,i) {showColorTools(this, i)})
+    .on("mouseout", function(d,i) {hideColorTools(this, i)})
+    .on("click", function(d,i) {changeColor(this, i);});
 
 bars.append("svg:rect")
     .attr("width", function(d,i) {return x(d.wins)})
-    .attr("height", y.rangeBand())
-    .on("click", function(d,i){console.log(d);});
+    .attr("height", y.rangeBand());
 
 bars.append("svg:text")
-    .attr("x", x)
+    .attr("x", 20)
     .attr("y", y.rangeBand() / 2)
     .attr("dx", -6)
     .attr("dy", ".35em")
     .attr("fill", "white")
     .attr("text-anchor", "end")
-    .text(x.tickFormat(100));
+    .text(function(d,i) {return d.wins});
 
 bars.append("svg:text")
     .attr("x", 0)
@@ -183,16 +187,43 @@ palette_rows.append("svg:text")
     .text(function(d, i) { return d.algorithm });
    */
 
-function changeColor() {}
+function changeColor(element, i) {
+	
+		if(chosen_colors[i] == undefined) {chosen_colors[i] = 0;}
+		else
+		{
+			chosen_colors[i] = (chosen_colors[i] + 1) % colors[i].centroids.length;
+		}
+		console.log("choosing color for i=" + i , chosen_colors[i], colors[i]);
+		d3.select(element)
+		.attr("opacity", 1)
+		.transition()
+	      .duration(500)
+			.attr("fill", function() { return "#" + colors[i].centroids[chosen_colors[i]].rgba;});
+	
+}
+
+function showColorTools(element, i) {
+	d3.select(element)
+	.transition()
+	      .duration(100)
+	      .attr("opacity", 0.7)
+	      ;
+}
+
+function hideColorTools(element, i) {
+	d3.select(element)
+	.transition()
+	      .duration(100)
+	      .attr("opacity", 1)
+	      .selectAll();
+}
 
 function changePalette(){
 	vis.selectAll("g.bar")
-      .data(data)
     .transition()
       .duration(1000)
-      .attr("y", function(d) { return h - y(d.value) - .5; })
-      .attr("fill", function(d, i) { console.log("chosen palette " + chosen_palette); return "#" + palettes[chosen_palette].palette[i].rgba;})
-      .attr("height", function(d) { return y(d.value); });
+      .attr("fill", function(d, i) { return "#" + palettes[chosen_palette].palette[i].rgba;});
 }
     </script>
     
