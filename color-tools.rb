@@ -209,9 +209,9 @@ class ColorTools
 	
 	# Returns distance between two points in LAB space
 	def self.LABDistance(a,b)
-		l1 = a['l']; l2 = b['l']
-		a1 = a['a']; a2 = b['a']
-		b1 = b['b']; b2 = b['b']
+		l1 = a['l'] || a[:l]; l2 = b['l'] || b[:l]
+		a1 = a['a'] || a[:a]; a2 = b['a'] || b[:a]
+		b1 = b['b'] || a[:b]; b2 = b['b'] || b[:b]
 		
 		return ((l1 - l2)**2 + (a1 - a2)**2 + (b1-b2)**2) ** 0.5  
 	end

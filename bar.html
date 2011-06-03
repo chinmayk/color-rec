@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bar Chart</title>
+    <script type="text/javascript" src="lib/js/d3.js"></script>
+    <script type="text/javascript" src="lib/js/jquery-min.js"></script>
+   	<script type="text/javascript" src="lib/fancybox/jquery.fancybox-1.3.4.pack.js"></script>
+   	<script type="text/javascript" src="lib/miniColors/jquery.miniColors.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="lib/fancybox/jquery.fancybox-1.3.4.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="lib/miniColors/jquery.miniColors.css" />
+	
+    <style type="text/css">
+
+body {
+  font: 11px sans-serif;
+}
+
+h2 {
+	color: gray;
+	font: 16px;
+}
+
+#palette-holder {
+	border: 1px solid steelBlue;
+	padding: 10px;
+	width: 600px;	
+}
+h2 em {
+	font-style: normal;
+	color: steelBlue;
+}
+
+svg {
+  shape-rendering: crispEdges;
+}
+
+
+.palette-choices {
+	font: 24px sans-serif;
+	cursor: pointer;
+}
+
+
+
+button {
+  font: 14px Helvetica Neue;
+  background-color: #222;
+  background-image: -moz-linear-gradient(top, rgba(255,255,255,.25), rgba(255,255,255,.11));
+  background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,255,255,.25)),color-stop(1, rgba(255,255,255,.11)));
+  background-image: -webkit-linear-gradient(rgba(255,255,255,.25), rgba(255,255,255,.11));
+  color: #fff;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0 -1px 1px #222;
+  padding: 6px 10px 6px 10px;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid #222;
+  margin: 0;
+  -moz-box-shadow: 0 1px 3px #999;
+  -webkit-box-shadow: 0 1px 3px #999;
+}
+
+button.first {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+button.last {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+button.active {
+  background-color: rgb(65,102,133);
+}
+
+button:hover {
+  background-color: steelblue;
+}
+    </style>
+  </head>
+  <body>
+
+  	<div id="controls">
+  		
+  	<div id="palette-holder">
+  		<h2>Try <em>a built-in palette</em> below.</h2>
+  	</div>
+  	<div><h2>Or, <em>customize</em> by clicking each bar until you get what you want.</h2></div>
+  	<div><h2>Or, <em>Choose your own color</em></h2>
+  		<input type="text" id="color-hex"></input>
+  		
+  	</div>
+  	
+  	</div>
+  	
+  	<div id="graphic">
+  		
+  		
+  	</div>
+    	
+    <script type="text/javascript">
+    $(document).ready(function() {
+    	$('#color-hex').miniColors({
+    		change: function(hex,rgb)	{
+    			setColor(activeElement, hex);
+    		}}
+    	);
+    });
+    
+palettes = [{"algorithm":"frequency","palette":[{"rgba":"22482B","frequency":112.63418820031686,"l":56.28140479067775,"a":-21.129380080731575,"b":11.385829685642348,"quality":0.22920005949909075,"query":"Stanford Cardinal"},{"rgba":"E5BD48","frequency":336.0635033786103,"l":88.96295609723083,"a":-3.9514353890379783,"b":40.7371423376377,"quality":0.31990908543943486,"query":"Cal Bears"},{"rgba":"846F45","frequency":1050.496902634026,"l":72.37039001953174,"a":-0.39863298556121907,"b":19.657266199781365,"quality":2.137663141488793,"query":"UCLA Bruins"},{"rgba":"0E5824","frequency":491.42303211646276,"l":58.79793111269046,"a":-40.12490918869436,"b":19.886208424873793,"quality":112.69987254385478,"query":"Oregon Ducks"}]},{"algorithm":"saturation","palette":[{"rgba":"CD0C00","frequency":21.81097131184915,"l":52.2819199557627,"a":63.350145751462804,"b":64.06443694453449,"quality":138.35024680765022,"query":"Stanford Cardinal"},{"rgba":"050153","frequency":139.21948065669918,"l":19.775669582081875,"a":52.72401879446395,"b":-69.99234171389458,"quality":113.99624898201185,"query":"Cal Bears"},{"rgba":"102373","frequency":25.905928340034325,"l":44.91448021595841,"a":11.748653426103369,"b":-43.5244898053928,"quality":119.55070195412905,"query":"UCLA Bruins"},{"rgba":"CAD21F","frequency":153.19580235768103,"l":90.12637405241814,"a":-18.469825062246464,"b":64.28550331082704,"quality":167.47634067846542,"query":"Oregon Ducks"}]},{"algorithm":"random","palette":[{"rgba":"D5D1D7","frequency":628.4637767521833,"l":92.80895876738721,"a":1.1799370280814707,"b":-1.0284121296711781,"quality":68.25845706671099,"query":"Stanford Cardinal"},{"rgba":"8A897F","frequency":687.6627893023972,"l":78.20615096604325,"a":-0.9164178692699096,"b":3.364398394967807,"quality":58.88384505885174,"query":"Cal Bears"},{"rgba":"102373","frequency":25.905928340034325,"l":44.91448021595841,"a":11.748653426103369,"b":-43.5244898053928,"quality":119.55070195412905,"query":"UCLA Bruins"},{"rgba":"0A0B09","frequency":263.77015985715707,"l":24.010527235493157,"a":-1.9500556766307593,"b":2.3661523003264886,"quality":51.381571217133164,"query":"Oregon Ducks"}]},{"algorithm":"distance","palette":[{"rgba":"CD0C00","frequency":21.81097131184915,"l":52.2819199557627,"a":63.350145751462804,"b":64.06443694453449,"quality":138.35024680765022,"query":"Stanford Cardinal"},{"rgba":"050153","frequency":139.21948065669918,"l":19.775669582081875,"a":52.72401879446395,"b":-69.99234171389458,"quality":113.99624898201185,"query":"Cal Bears"},{"rgba":"0D71B5","frequency":30.16038684948715,"l":67.9983232681885,"a":-18.805537135196243,"b":-30.050810488060623,"quality":0.028710590934502244,"query":"UCLA Bruins"},{"rgba":"0E5824","frequency":491.42303211646276,"l":58.79793111269046,"a":-40.12490918869436,"b":19.886208424873793,"quality":112.69987254385478,"query":"Oregon Ducks"}]}];
+colors = [{"query":"Stanford Cardinal","centroids":[{"rgba":"D5D1D7","frequency":628.4637767521833,"l":92.80895876738721,"a":1.1799370280814707,"b":-1.0284121296711781},{"rgba":"961124","frequency":602.7172246114129,"l":49.859475146874786,"a":53.298008357981075,"b":9.860998038610695},{"rgba":"22482B","frequency":112.63418820031686,"l":56.28140479067775,"a":-21.129380080731575,"b":11.385829685642348},{"rgba":"CD0C00","frequency":21.81097131184915,"l":52.2819199557627,"a":63.350145751462804,"b":64.06443694453449}],"max":628.4637767521833},{"query":"Cal Bears","centroids":[{"rgba":"8A897F","frequency":687.6627893023972,"l":78.20615096604325,"a":-0.9164178692699096,"b":3.364398394967807},{"rgba":"E5BD48","frequency":336.0635033786103,"l":88.96295609723083,"a":-3.9514353890379783,"b":40.7371423376377},{"rgba":"0D1844","frequency":217.4833310457775,"l":37.2953667758169,"a":8.241935776680055,"b":-32.98797947189653},{"rgba":"050153","frequency":139.21948065669918,"l":19.775669582081875,"a":52.72401879446395,"b":-69.99234171389458}],"max":687.6627893023972},{"query":"UCLA Bruins","centroids":[{"rgba":"846F45","frequency":1050.496902634026,"l":72.37039001953174,"a":-0.39863298556121907,"b":19.657266199781365},{"rgba":"020102","frequency":255.26863747930327,"l":5.502712742900467,"a":5.202184455461331,"b":-1.938862423373334},{"rgba":"0D71B5","frequency":30.16038684948715,"l":67.9983232681885,"a":-18.805537135196243,"b":-30.050810488060623},{"rgba":"102373","frequency":25.905928340034325,"l":44.91448021595841,"a":11.748653426103369,"b":-43.5244898053928}],"max":1050.496902634026},{"query":"Oregon Ducks","centroids":[{"rgba":"0E5824","frequency":491.42303211646276,"l":58.79793111269046,"a":-40.12490918869436,"b":19.886208424873793},{"rgba":"AFB09F","frequency":414.3658455575497,"l":86.27319972012045,"a":-1.8638632377575917,"b":4.79660401169881},{"rgba":"0A0B09","frequency":263.77015985715707,"l":24.010527235493157,"a":-1.9500556766307593,"b":2.3661523003264886},{"rgba":"CAD21F","frequency":153.19580235768103,"l":90.12637405241814,"a":-18.469825062246464,"b":64.28550331082704}],"max":491.42303211646276}];
+data = [{"query": "Stanford Cardinal", "wins": 20}, {"query": "Cal Bears", "wins": 14}, {"query": "UCLA Bruins", "wins": 10},
+{"query": "Oregon Ducks", "wins": 21}];
+
+var chosen_palette = 0;
+
+var chosen_colors = {};
+var activeColor = -1;
+var activeElement = null;
+d3.select("#palette-holder").selectAll(".palette-choices")
+      .data(palettes)
+      .enter()
+      .append("button")
+      .attr("class", "palette-choices")
+      .on("click", function(d,i) {
+      	chosen_palette = i;
+      	d3.selectAll(".palette-choices").classed("active", false);
+      	d3.select(this).classed("active", true); 
+      	changePalette();
+      	})
+      .text(function(d,i) {return d.algorithm;});
+
+var w = 860,
+    h = 460,
+    palette_h = 200,
+    x = d3.scale.linear().domain([0, 30]).range([0, w]),
+    y = d3.scale.ordinal().domain(d3.range(data.length)).rangeBands([0, h], .2),
+	palette_height = d3.scale.ordinal().domain(d3.range(palettes.length)).rangeBands([0, palette_h], .2);
+
+vis = d3.select("div#graphic")
+  .append("svg:svg")
+    .attr("width", w + 200)
+    .attr("height", h + 20)
+  .append("svg:g")
+    .attr("transform", "translate(100,0)");
+
+var bars = vis.selectAll("g.bar")
+    .data(data)
+  .enter().append("svg:g")
+    .attr("class", "bar")
+    .attr("transform", function(d, i) { return "translate(0," + y(i) + ")"; });
+    
+
+
+bars.append("svg:rect")
+    .attr("width", function(d,i) {return x(d.wins)})
+    .attr("height", y.rangeBand())
+    .on("mouseover", function(d,i) {fadeOut(this, i)})
+    .on("mouseout", function(d,i) {fadeIn(this, i)})
+    .on("click", function(d,i) {changeColor($(this).parent().get(0), i);});
+
+bars.append("svg:text")
+    .attr("x", 20)
+    .attr("y", y.rangeBand() / 2)
+    .attr("dx", -6)
+    .attr("dy", ".35em")
+    .attr("fill", "white")
+    .attr("text-anchor", "end")
+    .text(function(d,i) {return d.wins});
+
+bars.append("svg:text")
+    .attr("x", 0)
+    .attr("y", y.rangeBand() / 2)
+    .attr("dx", -6)
+    .attr("dy", ".35em")
+    .attr("text-anchor", "end")
+    .text(function(d, i) { return d.query })
+    .on("mouseover", function(d, i) {d3.select(this).attr("font-weight", "bold");})
+    .on("mouseout", function(d, i) {d3.select(this)
+    	.attr("font-weight", "normal");
+    	})
+    .on("click", function(d, i) {
+    	//d3.selectAll(".active-color").classed("active-color", false);
+	    	activeColor = i;
+	    	activeElement = $(this).parent().get(0);
+	    	$("#color-hex").focus();
+   		 }
+    	);
+
+var rules = vis.selectAll("g.rule")
+    .data(x.ticks(10))
+  .enter().append("svg:g")
+    .attr("class", "rule")
+    .attr("transform", function(d) { return "translate(" + x(d) + ",0)"; });
+
+rules.append("svg:line")
+    .attr("y1", h)
+    .attr("y2", h + 6)
+    .attr("stroke", "black");
+
+rules.append("svg:line")
+    .attr("y1", 0)
+    .attr("y2", h)
+    .attr("stroke", "white")
+    .attr("stroke-opacity", .3);
+
+rules.append("svg:text")
+    .attr("y", h + 9)
+    .attr("dy", ".71em")
+    .attr("text-anchor", "middle")
+    .text(x.tickFormat(10));
+
+vis.append("svg:line")
+    .attr("y1", 0)
+    .attr("y2", h)
+    .attr("stroke", "black");
+
+
+/*
+var palette_display = d3.select("#palette-picker")
+						.append("svg:svg")
+    					.attr("width", w + 200)
+    					.attr("height", h + 20)
+  						.append("svg:g")
+    					.attr("transform", "translate(100,0)");
+    					
+var palette_rows = palette_display.selectAll("g.rows")
+					.data(palettes)
+					.enter()
+					.append("svg:g")
+					.attr("class","rows")
+					.attr("transform", function(d, i) { return "translate(0," + palette_height(i) + ")"; });
+					
+palette_rows.append("svg:text")
+    .attr("x", 0)
+    .attr("y", y.rangeBand() / 2)
+    .attr("dx", -6)
+    .attr("dy", ".35em")
+    .attr("text-anchor", "end")
+    .text(function(d, i) { return d.algorithm });
+   */
+
+function setColor(element, color){
+	var currentColor = $(element).attr("fill");
+		
+		currentColor = currentColor || '#000000';
+		$('#color-hex').val(currentColor);
+		console.log(currentColor);
+		d3.select(element)
+		.attr("opacity", 1)
+		.transition()
+	      .duration(500)
+			.attr("fill", function() {return color;});
+
+}
+
+function changeColor(element, i) {
+	
+		if(chosen_colors[i] == undefined) {chosen_colors[i] = 0;}
+		else
+		{
+			chosen_colors[i] = (chosen_colors[i] + 1) % colors[i].centroids.length;
+		}
+		
+		activeColor = i;
+		console.log("choosing color for i=" + i , chosen_colors[i], colors[i]);
+		var color = '#' + colors[i].centroids[chosen_colors[i]].rgba;
+		setColor(element, color);
+}
+
+function fadeOut(element, i) {
+	
+	chosen_index = chosen_colors[i] || 0;
+	$("#color-hex").val('#' + colors[i].centroids[chosen_index].rgba);
+	d3.select(element)
+	.transition()
+	      .duration(100)
+	      .attr("opacity", 0.7);
+}
+
+function fadeIn(element, i) {
+	d3.select(element)
+	.transition()
+	      .duration(100)
+	      .attr("opacity", 1)
+	      .selectAll();
+}
+
+function changePalette(){
+	vis.selectAll("g.bar")
+    .transition()
+      .duration(1000)
+      .attr("fill", function(d, i) { return "#" + palettes[chosen_palette].palette[i].rgba;});
+}
+    </script>
+    
+  </body>
+</html>

@@ -39,14 +39,14 @@ open('./tmp/input','r') do |f|
 		#INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`) 
 		#VALUES (NULL, '050215', 'fruits', 'apple', 'test'), (NULL, '5F462A', 'fruits', 'apple', 'test')
 		
-		category_name = "countries"
-		source_name = "autoinsert"
+		category_name = "college football teams"
+		source_name = "weighted_distance"
 		result_strs = []
-		sql_string = 'INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`) VALUES '
+		sql_string = 'INSERT INTO `color-376`.`colors` (`color_id`, `hex_value`, `color_category`, `color_item`, `source`, `frequency`, `max_frequency`, `histogram_order`) VALUES '
 		
 		results.each do |result|
-			result[:centroids].each do |cluster|
-				result_strs << "(NULL, '#{cluster[:rgba]}', '#{category_name}', '#{result[:query]}', '#{source_name}', '#{cluster[:frequency]}')"
+			result[:centroids].each_with_index do |cluster, i|
+				result_strs << "(NULL, '#{cluster[:rgba]}', '#{category_name}', '#{result[:query]}', '#{source_name}', '#{cluster[:frequency]}', '#{result[:max]}', '#{i}')"
 			end
 			
 		end
@@ -55,14 +55,29 @@ open('./tmp/input','r') do |f|
 		
 		puts sql_string + result_str
 		
-		open("hist.js", "w") do |out|
-			out.write("color_frequencies = #{results.to_json};")
+		#open("hist.js", "w") do |out|
+		#	out.write("color_frequencies = #{results.to_json};")
+		#end
+		
+		puts "=====================Palette======================\n\n"
+		
+		#puts analyzer.get_palette.to_json
+		
+		palette_sql_str = "INSERT INTO `color-376`.`palettes` (`palette_id`, `hex1`, `color_item1`, `hex2`, `color_item2`, `hex3`, `color_item3`, `hex4`, `color_item4`, `color_category`, `algorithm`, `quality1`, `quality2`, `quality3`, `quality4`, `lab1`, `lab2`, `lab3`, `lab4`) VALUES "
+		
+		result_palette_str = [] 
+		
+		generated_pallete = analyzer.get_palette
+		
+		puts generated_pallete.to_json
+		
+		generated_pallete.each do |palette|
+			result_palette_str << "(NULL, '#{palette[:palette][0][:rgba]}', '#{palette[:palette][0][:query]}', '#{palette[:palette][1][:rgba]}', '#{palette[:palette][1][:query]}','#{palette[:palette][2][:rgba]}', '#{palette[:palette][2][:query]}','#{palette[:palette][3][:rgba]}', '#{palette[:palette][3][:query]}', '#{category_name}', '#{palette[:algorithm]}', '#{palette[:palette][0][:quality]}', '#{palette[:palette][1][:quality]}', '#{palette[:palette][2][:quality]}', '#{palette[:palette][3][:quality]}', '#{palette[:palette][0][:l]}, #{palette[:palette][0][:a]}, #{palette[:palette][0][:b]}', '#{palette[:palette][1][:l]}, #{palette[:palette][1][:a]}, #{palette[:palette][1][:b]}','#{palette[:palette][2][:l]}, #{palette[:palette][2][:a]}, #{palette[:palette][2][:b]}', '#{palette[:palette][3][:l]}, #{palette[:palette][3][:a]}, #{palette[:palette][3][:b]}' )"
 		end
 		
+		puts palette_sql_str + result_palette_str.join(', ')
 		
-	end
-	
-	puts "\b"	
+	end	
 end
 #Dir.chdir('./data') 
 
