@@ -1,0 +1,12 @@
+relevance counts
+total 1200
+weighted_distance 947
+random 110
+none 143
+
+> chisq.test(c(947,253),p=c(2/3,1/3))
+
+	Chi-squared test for given probabilities
+
+data:  c(947, 253) 
+X-squared = 81.0337, df = 1, p-value < 2.2e-16

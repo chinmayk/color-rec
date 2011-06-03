@@ -1,0 +1,8 @@
+likability
+
+> friedman.test(likability_category_matrix)
+
+	Friedman rank sum test
+
+data:  likability_category_matrix 
+Friedman chi-squared = 37.5113, df = 5, p-value = 4.73e-07
