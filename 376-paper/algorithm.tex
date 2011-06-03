@@ -1,0 +1,15 @@
+\Subsection{query-system}{Query System}
+Google Images is queried for images from  the category.
+\Subsection{statistical}{Statistical summarization}
+We assume that the images from the category are a random sampling from the concept-space of the category. Taking this assumption further, we look at the {\em average} frequencies of the different colors as a metric of how concepts are shared across the values in a category.
+
+\begin{align}
+Old = \alpha*average + (1-\alpha)*new \\
+  new = \frac{(old - \alpha*average)}{(1-\alpha)} 
+\end{align}
+
+Since we are interested in the colors specific to a category value, we substract a fraction of the average color frequency. 
+
+\Subsection{clustering}{Clustering}
+We cluster the result to get relevant colors in LAB space. We found that low saturation colors are less likely to be relevant, 
+so we reweight more saturated colors to be more relevant.
