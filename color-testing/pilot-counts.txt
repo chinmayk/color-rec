@@ -1,0 +1,6 @@
+relevance counts - study 1
+total 712
+autoinsert 537
+random 59
+none 116
+

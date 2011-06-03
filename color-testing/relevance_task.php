@@ -12,7 +12,9 @@ $curr_size = sizeof($random_categories);
 $category_number = $total_size - $curr_size + 1;
 
 if ($curr_size == 0) {
-	header('Location: feedback.php');
+?>
+	<meta HTTP-EQUIV="REFRESH" content="0; url=feedback.php">
+<?php
 }
 
 if(isset($_POST['submit'])) {
@@ -33,7 +35,7 @@ $_SESSION['prev_item'] = $color_item;
 $category_colors_array = array();
 $other_colors_array = array();
 
-$sql = "SELECT * FROM `colors` WHERE `color_category`='$color_category' AND `color_item`='$color_item'";
+$sql = "SELECT * FROM `colors` WHERE `color_category`='$color_category' AND `color_item`='$color_item' AND `source`='weighted_distance'";
 $result = mysql_query($sql, $conn);
 if($result) {
 	if(mysql_num_rows($result) == 0) {
@@ -126,10 +128,5 @@ $_SESSION['random_categories'] = $random_categories;
 			</table>
 			<input name="submit" type="submit" value="Next" onclick="validate(); return false;"/>
 		</form>
-<<<<<<< HEAD
 	</body>
 </html>
-=======
-		</body>
-</html>
->>>>>>> 41f6c4bda37dceabe5f0f31330092487388c81c6

@@ -5,7 +5,8 @@ global $conn;
 $worker_id = $_SESSION['worker_id'];
 
 if(isset($_POST['submit'])) {
-	$q = "INSERT INTO feedback (worker_id, task_type, feedback) VALUES ('$worker_id', 'relevance', '$_POST[feedback]')";
+	$feedback = mysql_real_escape_string($_POST['feedback']);
+	$q = "INSERT INTO feedback (worker_id, task_type, feedback) VALUES ('$worker_id', 'likability', '$feedback')";
 	$result = mysql_query($q,$conn);
 	if (!$result) {
   		die('Error: ' . mysql_error());

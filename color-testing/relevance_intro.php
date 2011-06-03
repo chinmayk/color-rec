@@ -17,7 +17,7 @@ if(isset($_POST['submit'])) {
 		$assignment_id = $_POST['assignment_id'];
 		$_SESSION['assignment_id'] = $assignment_id;
 		// Query for a list of all colors
-		$sql = "SELECT DISTINCT `color_category`, `color_item` FROM `colors` ORDER BY rand()";
+		$sql = "SELECT DISTINCT `color_category`, `color_item` FROM `colors` WHERE `source`='weighted_distance' ORDER BY rand()";
 		$result = mysql_query($sql, $conn);
 
 		// Check if it was successful
