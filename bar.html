@@ -141,7 +141,7 @@ var chosen_palette = 0,
 var chosen_colors = {};
 var activeColor = -1;
 var activeElement = null;
-d3.select("#palette-holder").selectAll(".palette-choices")
+var buttons = d3.select("#palette-holder").selectAll(".palette-choices")
       .data(palettes)
       .enter()
       .append("button")
@@ -153,6 +153,21 @@ d3.select("#palette-holder").selectAll(".palette-choices")
       	changePalette();
       	})
       .text(function(d,i) {return d.algorithm;});
+      buttons.append("br");
+      buttons.append("svg:svg")
+      .attr("height", 7)
+      .attr("width", 100)
+      .selectAll("g.swatches")
+      .data(function(d, i) {return d.palette})
+      .enter()
+      .append("svg:g")
+      .attr("height", 7)
+      .attr("class", "swatches")
+      .attr("transform", function(d,i) {return "translate(" + i*25 +",0)";})
+      .append("svg:rect")
+      .attr("width", 25)
+      .attr("height", 7)
+      .attr("fill", function(d,i) {return "#" + d.rgba;});
 
 var w = 645,
     h = 345,
