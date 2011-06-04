@@ -1,0 +1,84 @@
+ratings <- read.csv(file="/Users/jfortuna/Downloads/ratings(2).csv",head=TRUE)
+ratings
+summary(ratings)
+aov.ratings = aov(rating~participantCondition+Error(rater/participant),ratings)
+aov.ratings = aov(rating~participantCondition+Error(raterID/participant),ratings)
+aov.ratings = aov(rating~participantCondition+Error(participant/raterID),ratings)
+summary(aov.ratings)
+gfit=read.csv(file.choose(), row.names=1)
+git
+gfit
+attach(gfit)
+fit=read.csv(file.choose(), row.names=1)
+fit=read.table('clipboard',header=T)
+fit=read.csv(file.choose(), row.names=1)
+fit
+attach(fit)
+fit.g=chisq.test(observed, p=expected, rescale.p=T)
+fit.g
+fit.g$res
+fit.g$obs
+fit.g$exp
+fit=read.csv(file.choose(), row.names=1)
+fit
+attach(fit)
+fit.g=chisq.test(observed, p=expected, rescale.p=T)
+fit.g
+chisq.test(c(537,59,116),p=c(2/3,1/6,1/6))
+chisq.test(c(947,253),p=c(2/3,1/3))
+relevance = read.csv('relevance-clean.csv')
+getwd()
+setwd(/Applications/MAMP/htdocs/CS376/color-rec)
+setwd('/Applications/MAMP/htdocs/CS376/color-rec')
+getwd()
+relevance = read.csv('color-testing/relevance-clean.csv')
+attach(relevance)
+boxplot(relevance)
+likability = read.csv('color-testing/likability-clean.csv')
+attach(likability)
+likability
+clear
+likability-category = read.csv('color-testing/likability-ratings-category.csv')
+likability_category = read.csv('color-testing/likability-ratings-category.csv')
+attach(likability_category)
+boxplot(likability_category)
+likability_category_matrix=as.matrix(likability_category)
+friedman.test(likability_category_matrix)
+pairwise.wilcox.test
+pairwise.wilcox.test(likability_category_matrix, p.adj="bonferroni", exact=F, paired=T)
+likability_concrete_abstract=read.csv('color-testing/likability-concrete-abstract.csv')
+attach(likability_concrete_abstract)
+boxplot(likability_concrete_abstract)
+likability_concrete_abstract_matrix=as.matrix(likability_concrete_abstract)
+friedman.test(likability_concrete_abstract_matrix)
+wilcox.test(likability_concrete_abstract_matrix, paired=T)
+wilcox.test(likability_concrete_abstract_matrix[0], likability_concrete_abstract_matrix[1], paired=T)
+likability_concrete_abstract_matrix[0]
+likability_concrete_abstract_matrix[1]
+likability_concrete_abstract_matrix[[1]]
+likability_concrete_abstract_matrix[,1]
+likability_concrete_abstract_matrix[,0]
+likability_concrete_abstract_matrix[,2]
+wilcox.test(likability_concrete_abstract_matrix[,1], likability_concrete_abstract_matrix[,2], paired=T)
+wilcox.test(likability_concrete_abstract_matrix[1,], likability_concrete_abstract_matrix[2,], paired=T)
+wilcox.test(likability_concrete_abstract_matrix[,1], likability_concrete_abstract_matrix[,2], paired=T)
+likability_algorithm = read.csv('color-testing/likability-ratings-algorithm.csv')
+attach(likability_algorithm)
+likability_algorithm_matrix=as.matrix(likability_algorithm)
+friedman.test(likability_algorithm_matrix)
+likability_algorithm_matrix[,1]
+plot(likability_algorithm)
+boxplot(likability_algorithm)
+pairwise.wilcox.test(likability_algorithm_matrix[,1], likability_algorithm_matrix[,2], p.adj="bonferroni", exact=F, paired=T)
+pairwise.wilcox.test(likability_algorithm$frequency, likability_algorithm$random, p.adj="bonferroni", exact=F, paired=T)
+likability_algorithm$frequency
+pairwise.wilcox.test(likability_algorithm$frequency, likability_algorithm$random-protovis, p.adj="bonferroni", exact=F, paired=T)
+likability_algorithm = read.csv('color-testing/likability-ratings-algorithm.csv')
+attach(likability_algorithm)
+pairwise.wilcox.test(likability_algorithm$frequency, likability_algorithm$random_protovis, p.adj="bonferroni", exact=F, paired=T)
+likability_algorithm$frequency
+likability_algorithm$random_protovis
+pairwise.wilcox.test(likability_algorithm$frequency, likability_algorithm$random_protovis, p.adj="bonferroni", exact=F, paired=T)
+length(likability_algorithm$frequency)
+length(likability_algorithm$random_protovis)
+boxplot(likability_algorithm)
