@@ -1,6 +1,6 @@
 550 Words
 
-Images as a source of color data
+\Subsection{image-color-source}{Images as a source of color data}
 
 \system obtains colors for a topic from images that are labeled to be related to the topic. The assumption here is that images that are related to a topic will contain the topic's characteristic colors. Therefore, the first step in the \system pipeline is to obtain a set of images that relate to a topic.
 
@@ -56,6 +56,20 @@ Since \system considers the centroid of each cluster as a candidate color for th
 
 We do not use any existing results for topic-relevant colors, and so it is not possible to evaluate if the clustering was done ``correctly''. Therefore, instead of finding the ``correct'' clustering, we try to maximize attributes that all correct clusters should have. {\em First}, clusters should be dense, so we aren't mixing colors that are perceptually distant. {\em Second}, cluster-centroids must be widely separated, so the colors obtained are different perceptually.
 
+The Davies-Boudin index is a metric that tries to balance these two criteria. 
+
+\begin{align}
+DB &= \frac{1}{n} \sum_{i=1, i \neq j}^{n}max\big{(}\frac{\sigma_{i} + \sigma_{j}}{d(c_{i}, c_{j})}\big{)}
+\end{align}
+
+$\sigma_{i}, \sigma_{j}$ are the average distance of points in cluster $i$ and $j$ from the respective clusters, and $d(c_{i}, c_{j})$ is the distance between cluster centroids. A lower value of DB implies quality of the clustering.
+
+However, the LAB color space is only finite, which limits cluster separation. Therefore, for \system, the density of the cluster is more important than cluster separation, and we use a modified version of the Davies-Boudin index as below.
+\begin{align}
+DB' &= \frac{1}{n} \sum_{i=1, i \neq j}^{n}max\big{(}\frac{\sigma_{i}^{2} + \sigma_{j}^{2}}{d(c_{i}, c_{j})}\big{)}
+\end{align}
+
+\system runs K-Means clustering several times and picks centroids that minimize $DB'$. 
 
 The overall goal of \system is to find colors that are relevant to a given topic. To do this, \system assumes that images related to a topic contain colors that are relevant to the topic. In particular, it assumes that there is a mapping, say $\sC(t)$, from the set of images for a topic $t$, $I(t)$, and the set of colors, $C(t)$ that are relevant to it. 
 \begin{align*}
