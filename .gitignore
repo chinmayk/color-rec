@@ -1,3 +1,4 @@
+*.texshop
 .Rhistory
 build/
 flowers.js

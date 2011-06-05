@@ -27,8 +27,8 @@ Therefore, we make the stronger assumption that the observed frequency of a colo
 
 \begin{align}
 \label{linear-color}
-Obs(t) &= \alpha*C(T') + (1-\alpha)*C(t) \\
-\implies  C(t) &= max\{0,\frac{Obs(t) - \alpha*C(T')}{(1-\alpha)}\}
+Obs(t) &\approx \alpha*C(T') + (1-\alpha)*C(t) \\
+\implies  C(t) &\approx max\{0,\frac{Obs(t) - \alpha*C(T')}{(1-\alpha)}\}
 \end{align}
 
 
@@ -36,10 +36,20 @@ While colors may perceptually be identical, they may have slightly different col
 
 For binning, we used a bin size that was twice the just-noticeable difference in each dimension. After binning, frequencies of individual color values are meaningless, and are discarded. However, to ensure we don't introduce colors that weren't present in the images, we set the color value of the bin to the the color-value in the sample that is closest to its centroid. We denote the binning operator by $B$, and modify Equation \ref{linear-color} to:
 \begin{align}
-\label{linear-color-bin}
-\implies  B(C(t)) &= max\{0,\frac{B(Obs(t)) - \alpha*B(C(T'))}{(1-\alpha)}\}
+\label{linear-color-bin}  
+B(C(t)) &\approx max\{0,\frac{B(Obs(t)) - \alpha*B(C(T'))}{(1-\alpha)}\}
 \end{align}
- 
+
+The result of this step is a set of bin-frequencies $B(C(t))$.
+
+\Subsection{clustering}{Clustering color values}
+While $B(C(t))$ is an approximation to the color-distribution of the topic, we need to obtain individual colors that best represent the topic. This is equivalent to finding points in the color distribution around which the probability-density is highest. 
+
+These points can be considered as means of components in a mixture model [cite], where the color distribution is seen as a mixture of several (say $n$) independent component distributions  that are chosen from with known probabilities. We tried three approaches. First, we fit a general gaussian mixture model [cite] to the binned-color-distribution. Since the LAB color space is small (and the space of perceptually valid colors smaller), this often fails for $n>3$ gaussians. We also tried using gaussian mixtures with shared covariances (so all the Gaussians have the same shape, but may differ in size), which perform better for larger values of $n$. Lastly, we tried using K-Means clustering [cite], which is equivalent to a gaussian mixture with spherical Gaussians (so, all components are shaped as spheres). In our preliminary evaluation, we found that K-Means and shared-covariance Gaussians performed equally well, but K-Means was much faster. Therefore, \system uses K-Means clustering.
+
+K-Means clustering results in a number of clusters in the color space. Bins are assigned to the cluster whose centroid they are closest to. These centroids are the means of the spherical Gaussians. As explained above, these centroids can then be considered the colors that best represent the topic.
+
+\Subsubsection{clustering-quality}{Clustering quality}
 
 The overall goal of \system is to find colors that are relevant to a given topic. To do this, \system assumes that images related to a topic contain colors that are relevant to the topic. In particular, it assumes that there is a mapping, say $\sC(t)$, from the set of images for a topic $t$, $I(t)$, and the set of colors, $C(t)$ that are relevant to it. 
 \begin{align*}
