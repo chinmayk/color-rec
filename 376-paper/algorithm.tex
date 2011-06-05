@@ -4,7 +4,7 @@ Images as a source of color data
 
 \system obtains colors for a topic from images that are labeled to be related to the topic. The assumption here is that images that are related to a topic will contain the topic's characteristic colors. Therefore, the first step in the \system pipeline is to obtain a set of images that relate to a topic.
 
-In order to do this, \system uses a labeled corpus that contains images along with ``tags'' or topics that it is related to. Several labeled corpora exist on the Internet: for example, Flickr contains primarily photographs that have been tagged manually. ImageNet contains a taxonomy of images.  Google Images, and other search engines, while not an explicit tagged corpus, can also provide images relevant to a topic (through search). \system uses Google Images as its image source, because of the large number of images it indexes (unlike, Flickr, which consists primarily of photographs), and because it does not images to be tagged explicitly (unlike ImageNet). This increased diversity and quantity in the corpus comes at a price, however-- images vary in quality, size and relevance to topic. However, \system is largely robust to these these problems, as described below.
+In order to do this, \system uses a labeled corpus that contains images along with ``tags'' or topics that it is related to. Several labeled corpora exist on the Internet: for example, Flickr contains primarily photographs that have been tagged manually. ImageNet contains a taxonomy of images.  Google Images, and other search engines, while not an explicit tagged corpus, can also provide images relevant to a topic (through search). \system uses Google Images as its image source, because of the large number of images it indexes (unlike, Flickr, which consists primarily of photographs), and because it does not images to be tagged explicitly (unlike ImageNet). This increased diversity and quantity in the corpus comes at a price, however-- images vary in quality, size and relevance to topic. However, \system is largely robust to these these problems, as described below. The number of images that can be obtained is also limited by the API (to 32).
 
 \Subsection{sampling-images}{Sampling Images}
 Since \system considers topic-related images as a proxy to topic-related colors, sampling pixels from these images is approximately equivalent to sampling color values from the topic's color space. 
@@ -20,6 +20,26 @@ Population sampling results in frequent colors being sampled more often. However
 
 Given a topic $t$, \system also queries Google Images for a set of topics similar to it (say $T'$), and finds their population samples ($S(T)$. Since the topics are similar, we expect their color distributions to be similar too. By ``subtracting'' color distributions of $T'$, \system finds a color distribution that is more specific to $t$. 
 
+\Subsubsection{subtracting}{Subtracting distributions}
+There are several possible methods of subtracting distributions. The specific color distribution of a topic ($C(t)$) can be considered a hidden variable in a bayesian network such as in Fig TODO, and the observed values of the noisy distributions of other related topics could be used to obtain its value (using an expectation maximization algorithm). Bayesian models train slowly, however, and require large amounts of training data to move away from their priors (which is unavailable, due to limitations of the Image API).
+
+Therefore, we make the stronger assumption that the observed frequency of a color ($Obs(t)$) is a linear combination of the specific distribution, and the distribution for other similar topics in $T'$. Since such a linear combination may lead to a negative value for $C(t)$, we clamp this value at zero. For our prototype, we used $\alpha = 0.15$.
+
+\begin{align}
+\label{linear-color}
+Obs(t) &= \alpha*C(T') + (1-\alpha)*C(t) \\
+\implies  C(t) &= max\{0,\frac{Obs(t) - \alpha*C(T')}{(1-\alpha)}\}
+\end{align}
+
+
+While colors may perceptually be identical, they may have slightly different color values. Therefore, instead of subtracting raw frequencies, we bin color-values in LAB space, and subtract bin-frequencies. LAB is a color space in which the Euclidian distance between two color coordinates approximates the perceptual difference. 
+
+For binning, we used a bin size that was twice the just-noticeable difference in each dimension. After binning, frequencies of individual color values are meaningless, and are discarded. However, to ensure we don't introduce colors that weren't present in the images, we set the color value of the bin to the the color-value in the sample that is closest to its centroid. We denote the binning operator by $B$, and modify Equation \ref{linear-color} to:
+\begin{align}
+\label{linear-color-bin}
+\implies  B(C(t)) &= max\{0,\frac{B(Obs(t)) - \alpha*B(C(T'))}{(1-\alpha)}\}
+\end{align}
+ 
 
 The overall goal of \system is to find colors that are relevant to a given topic. To do this, \system assumes that images related to a topic contain colors that are relevant to the topic. In particular, it assumes that there is a mapping, say $\sC(t)$, from the set of images for a topic $t$, $I(t)$, and the set of colors, $C(t)$ that are relevant to it. 
 \begin{align*}
@@ -36,10 +56,7 @@ Google Images is queried for images from  the category.
 \Subsection{statistical}{Statistical summarization}
 We assume that the images from the category are a random sampling from the concept-space of the category. Taking this assumption further, we look at the {\em average} frequencies of the different colors as a metric of how concepts are shared across the values in a category.
 
-\begin{align}
-Old = \alpha*average + (1-\alpha)*new \\
-  new = \frac{(old - \alpha*average)}{(1-\alpha)} 
-\end{align}
+
 
 Since we are interested in the colors specific to a category value, we substract a fraction of the average color frequency. 
 
