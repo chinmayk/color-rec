@@ -1,5 +1,26 @@
 550 Words
 
+Images as a source of color data
+
+\system obtains colors for a topic from images that are labeled to be related to the topic. The assumption here is that images that are related to a topic will contain the topic's characteristic colors. Therefore, the first step in the \system pipeline is to obtain a set of images that relate to a topic.
+
+In order to do this, \system uses a labeled corpus that contains images along with ``tags'' or topics that it is related to. Several labeled corpora exist on the Internet: for example, Flickr contains primarily photographs that have been tagged manually. ImageNet contains a taxonomy of images.  Google Images, and other search engines, while not an explicit tagged corpus, can also provide images relevant to a topic (through search). \system uses Google Images as its image source, because of the large number of images it indexes (unlike, Flickr, which consists primarily of photographs), and because it does not images to be tagged explicitly (unlike ImageNet). This increased diversity and quantity in the corpus comes at a price, however-- images vary in quality, size and relevance to topic. However, \system is largely robust to these these problems, as described below.
+
+\Subsection{sampling-images}{Sampling Images}
+Since \system considers topic-related images as a proxy to topic-related colors, sampling pixels from these images is approximately equivalent to sampling color values from the topic's color space. 
+
+Therefore, given a set of images related to a topic (from Step 1 above), \system then randomly samples pixels from these images. Sampling could be performed in a variety of ways-- it could be purely random (``population sampling''), which would count more frequent color values more often. Or, one could consider the ``natural'' distribution of colors for images, and weight color values that occur less frequently in the ``natural distribution'' higher. One could also consider more complex schemes which weight color values differently based on how close they are to edges in the image etc.
+
+\system uses simple population sampling. Unlike other sampling schemes, this does not require us to know the ``natural'' distribution of colors in images, nor do we require image processing such as edge-detection. However, population sampling results in over-weighting of color values that occur frequently in general. We handle this problem with query expansion (\refsec{query-expansion}).
+
+\system uniformly samples a fixed number of pixels from each image. This ensures that larger images don't monopolize the obtained sample. The result of this step is a sample of pixels/color-values from the images.
+
+\Subsection{query-expansion}{Query expansion}
+Population sampling results in frequent colors being sampled more often. However, many frequent colors may not be indicative of the topic, and be merely a result of the natural distribution of color values in images. While one could build a sophisticated model for such a natural distribution, \system solves it in a different way.
+
+Given a topic $t$, \system also queries Google Images for a set of topics similar to it (say $T'$), and finds their population samples ($S(T)$. Since the topics are similar, we expect their color distributions to be similar too. By ``subtracting'' color distributions of $T'$, \system finds a color distribution that is more specific to $t$. 
+
+
 The overall goal of \system is to find colors that are relevant to a given topic. To do this, \system assumes that images related to a topic contain colors that are relevant to the topic. In particular, it assumes that there is a mapping, say $\sC(t)$, from the set of images for a topic $t$, $I(t)$, and the set of colors, $C(t)$ that are relevant to it. 
 \begin{align*}
 \sC(t) : I(t) &\rightarrow C(t)
