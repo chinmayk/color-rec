@@ -2,39 +2,37 @@
 \Subsection{assumptions}{Assumptions}
 \system obtains colors for a topic from images that are labeled to be related to the topic. 
 
-\textbf {Assumption 1}: Images related to a topic will contain the topic's characteristic colors. Let $\sA$ be a mapping between images related to a topic to the colors related to the topic.
+\textbf {Assumption 1}: Images related to a topic will contain the topic's characteristic colors. Therefore, sampling pixels from these images is equivalent to sampling color values from the topic's color space. 
+\begin{align}
+S(I(t)) &\approx S(C(t))
+\end{align} 
+where $I(t)$ is the set of relevant images to a topic, and $C(t)$ is its color distribution. $S$ is a sampling function.
 
 \textbf{Assumption 2}: \system also makes the assumption that similar topics will have a similar color distribution. i.e, 
 \begin{align*}
 \T{If } t &\approx t' & \T{for } t, t' \in T \\
-\implies \sA(t) &\approx \sA(t')
+\implies C(t) &\approx C(t')
 \end{align*} 
 where $T$ is the set of all topics.
 
 \Subsection{image-color-source}{Images as a source of color data}
 
-The first step in the \system pipeline is to obtain a set of images that relate to a topic.
-
-In order to do this, \system uses a labeled corpus that contains images along with ``tags'' or topics that it is related to. Several labeled corpora exist on the Internet: for example, Flickr contains primarily photographs that have been tagged manually. ImageNet contains a taxonomy of images.  Google Images, and other search engines, while not an explicit tagged corpus, can also provide images relevant to a topic (through search). \system uses Google Images as its image source, because of the large number of images it indexes (unlike, Flickr, which consists primarily of photographs), and because it does not images to be tagged explicitly (unlike ImageNet). This increased diversity and quantity in the corpus comes at a price, however-- images vary in quality, size and relevance to topic. However, \system is largely robust to these these problems, as described below. The number of images that can be obtained is also limited by the API (to 32).
+The first step in the \system pipeline is to obtain a set of topic-related images. Several corpora on the Internet allow one to find a set of images that related to a given topic. For example, Flickr contains primarily photographs that have been tagged manually. ImageNet contains a taxonomy of images.  Google Images, and other search engines, do not use a manually tagged corpus, but allow the corpus to be search to find relevant images. \system uses Google Images as its image source because of the large number of images it indexes (unlike, Flickr, which consists primarily of photographs), and because it does not require images that are tagged explicitly (unlike ImageNet), which increases the diversity of the corpus. However, the indexed images vary in quality, size and topic relevance. The number of images per search is also limited by the API (to 32).\system is largely robust to these these problems, as described below. 
 
 \Subsection{sampling-images}{Sampling Images}
-Since \system considers topic-related images as a proxy to topic-related colors, sampling pixels from these images is approximately equivalent to sampling color values from the topic's color space. 
+Given a set of images related to a topic (from Step 1 above), \system then randomly samples pixels from these images. Sampling could be performed in several ways-- it could be purely random, which would count more frequent color values more often  (``population sampling''). Or, one could consider the ``natural'' distribution of colors for images, and weight color values that occur less frequently in the ``natural distribution'' higher. One could also consider more complex schemes which weight color values differently based on how close they are to edges in the image etc.
 
-Therefore, given a set of images related to a topic (from Step 1 above), \system then randomly samples pixels from these images. Sampling could be performed in a variety of ways-- it could be purely random (``population sampling''), which would count more frequent color values more often. Or, one could consider the ``natural'' distribution of colors for images, and weight color values that occur less frequently in the ``natural distribution'' higher. One could also consider more complex schemes which weight color values differently based on how close they are to edges in the image etc.
-
-\system uses simple population sampling. Unlike other sampling schemes, this does not require us to know the ``natural'' distribution of colors in images, nor do we require image processing such as edge-detection. However, population sampling results in over-weighting of color values that occur frequently in general. We handle this problem with query expansion (\refsec{query-expansion}).
-
-\system uniformly samples a fixed number of pixels from each image. This ensures that larger images don't monopolize the obtained sample. The result of this step is a sample of pixels/color-values from the images.
+\system uses simple population sampling and uniformly samples a fixed number of pixels from each image $(S_{P})$. Unlike other sampling schemes, this requires no knowledge of the ``natural'' distribution of colors in images, nor are pre-processing steps like edge-detection. Population sampling results in over-weighting of color values that occur frequently in general, which we handle by query expansion (\refsec{query-expansion}).
 
 \Subsection{query-expansion}{Query expansion}
-Population sampling results in frequent colors being sampled more often. However, many frequent colors may not be indicative of the topic, and be merely a result of the natural distribution of color values in images. While one could build a sophisticated model for such a natural distribution, \system solves it in a different way.
+Population sampling results in frequent colors being sampled more often. However, frequent colors may not be indicative of the topic, and merely be an artifact of the natural distribution of colors in images. 
 
-Given a topic $t$, \system also queries Google Images for a set of topics similar to it (say $T'$), and finds their population samples ($S(T)$. Since the topics are similar, we expect their color distributions to be similar too. By ``subtracting'' color distributions of $T'$, \system finds a color distribution that is more specific to $t$. 
+Given a topic $t$, \system also queries Google Images for a set of topics similar to it (say $T'$), and finds ($S_{P}(I(T'))$). Since the topics are similar, we expect their color distributions to be similar too (Assumption 2). By ``subtracting'' color distributions of $S_{P}(I(T'))$, \system finds a color distribution that is more specific to $t$. 
 
 \Subsubsection{subtracting}{Subtracting distributions}
-There are several possible methods of subtracting distributions. The specific color distribution of a topic ($C(t)$) can be considered a hidden variable in a bayesian network such as in Fig TODO, and the observed values of the noisy distributions of other related topics could be used to obtain its value (using an expectation maximization algorithm). Bayesian models train slowly, however, and require large amounts of training data to move away from their priors (which is unavailable, due to limitations of the Image API).
+There are several possible methods of subtracting distributions. The specific color distribution of a topic ($C(t)$) can be modeled as a hidden variable in a bayesian network such as in Fig TODO, and the observed values of the noisy distributions of other related topics could be used to infer its value. Bayesian models train slowly, however, and require large amounts of training data (which is unavailable, due to limitations of the Image API).
 
-Therefore, we make the stronger assumption that the observed frequency of a color ($Obs(t)$) is a linear combination of the specific distribution, and the distribution for other similar topics in $T'$. Since such a linear combination may lead to a negative value for $C(t)$, we clamp this value at zero. For our prototype, we used $\alpha = 0.15$.
+Therefore, we make the stronger assumption that the observed frequencies of color for a topic ($Obs(t)$) are a linear combination of the topic-specific distribution, and the distribution for similar topics $T'$. Since $C(t)$ is non-negative, we clamp this value at zero. For our prototype, we used $\alpha = 0.15$.
 
 \begin{align}
 \label{linear-color}
@@ -42,42 +40,40 @@ Obs(t) &\approx \alpha*C(T') + (1-\alpha)*C(t) \\
 \implies  C(t) &\approx max\{0,\frac{Obs(t) - \alpha*C(T')}{(1-\alpha)}\}
 \end{align}
 
+Lastly, while colors may be perceptually very similar, their color values may differ. Therefore, instead of subtracting raw frequencies, we bin color-values in LAB space, and subtract bin-frequencies (the LAB color space is designed such that the Euclidian distance between two color coordinates approximates the perceptual difference). 
 
-While colors may perceptually be identical, they may have slightly different color values. Therefore, instead of subtracting raw frequencies, we bin color-values in LAB space, and subtract bin-frequencies. LAB is a color space in which the Euclidian distance between two color coordinates approximates the perceptual difference. 
-
-For binning, we used a bin size that was twice the just-noticeable difference in each dimension. After binning, frequencies of individual color values are meaningless, and are discarded. However, to ensure we don't introduce colors that weren't present in the images, we set the color value of the bin to the the color-value in the sample that is closest to its centroid. We denote the binning operator by $B$, and modify Equation \ref{linear-color} to:
+For binning, we used a bin size that was twice the just-noticeable difference in each dimension. After binning, we set the color value of the bin to the the color-value in the sample that is closest to its centroid to ensure we don't introduce colors that weren't present in the images. We denote the binning operator by $B$, and modify Equation \ref{linear-color} to:
 \begin{align}
 \label{linear-color-bin}  
 B(C(t)) &\approx max\{0,\frac{B(Obs(t)) - \alpha*B(C(T'))}{(1-\alpha)}\}
 \end{align}
 
-The result of this step is a set of bin-frequencies $B(C(t))$.
-
 \Subsection{clustering}{Clustering color values}
-While $B(C(t))$ is an approximation to the color-distribution of the topic, we need to obtain individual colors that best represent the topic. This is equivalent to finding points in the color distribution around which the probability-density is highest. 
+While $B(C(t))$ is an approximation to the color-distribution of the topic, we need to obtain individual colors that best represent the topic. 
 
-These points can be considered as means of components in a mixture model [cite], where the color distribution is seen as a mixture of several (say $n$) independent component distributions  that are chosen from with known probabilities. We tried three approaches. First, we fit a general gaussian mixture model [cite] to the binned-color-distribution. Since the LAB color space is small (and the space of perceptually valid colors smaller), this often fails for $n>3$ gaussians. We also tried using gaussian mixtures with shared covariances (so all the Gaussians have the same shape, but may differ in size), which perform better for larger values of $n$. Lastly, we tried using K-Means clustering [cite], which is equivalent to a gaussian mixture with spherical Gaussians (so, all components are shaped as spheres). In our preliminary evaluation, we found that K-Means and shared-covariance Gaussians performed equally well, but K-Means was much faster. 
+The color distribution for a topic can be considered as a mixture model [cite], where the final distribution comes from one of several (say $n$) independent component distributions that are chosen from with known probabilities. In such a model, the representative colors will be the means of the components. 
 
-Therefore, \system uses K-Means clustering. As with binning, clustering is done in LAB space.
+We tried three approaches. First, we fit a general gaussian mixture model [cite] to $B(C(t))$. The perceptually valid region of the LAB color space is small and GMMs often fail for $n>3$ gaussians. Second, we tried using gaussian mixtures with shared covariances (so components have the same shape, but may differ in size) which work with larger values of $n$. Third, we tried using K-Means clustering [cite], which is equivalent to a gaussian mixture with spherical Gaussian components. 
 
-K-Means clustering results in a number of clusters in the color space. Bins are assigned to the cluster whose centroid they are closest to. These centroids are the means of the spherical Gaussians. As explained above, these centroids can then be considered the colors that best represent the topic.
+In our preliminary evaluation, we observed that K-Means and shared-covariance Gaussians performed equally well, but K-Means was much faster. Therefore, \system uses K-Means clustering. As with binning, clustering is done in LAB space.
+
+K-Means clustering results in a number of clusters in the color space. Bins are assigned to the cluster whose centroid they are closest to. Cluster centroids are means of the spherical Gaussians.
 
 \Subsubsection{clustering-quality}{Clustering quality}
-Since \system considers the centroid of each cluster as a candidate color for the topic, the quality of the clustering affects results significantly (in general, K-Means clustering is seeded randomly, and can converge on different clusters each time it is run).
+Since \system considers the centroid of each cluster as a candidate color for the topic, the quality of the clustering affects results significantly (K-Means clustering is seeded randomly, and can converge to different clusters each time it is run).
 
-We do not use any existing results for topic-relevant colors, and so it is not possible to evaluate if the clustering was done ``correctly''. Therefore, instead of finding the ``correct'' clustering, we try to maximize attributes that all correct clusters should have. {\em First}, clusters should be dense, so we aren't mixing colors that are perceptually distant. {\em Second}, cluster-centroids must be widely separated, so the colors obtained are different perceptually.
+\system does not use existing data about which colors are topic-relevant, and so cannot evaluate if clustering was done ``correctly''. Instead, we try to maximize attributes associated with correct clusters. {\em First}, clusters should be dense, so each represents a perceptually coherent color. {\em Second}, cluster-centroids must be widely separated, so the colors obtained aren't just variations of each other. 
 
-The Davies-Boudin index is a metric that tries to balance these two criteria. 
-
+The Davies-Boudin index tries to balance these two criteria [cite].  A lower value of DB indicates better clustering.
 \begin{align}
 DB &= \frac{1}{n} \sum_{i=1, i \neq j}^{n}max\big{(}\frac{\sigma_{i} + \sigma_{j}}{d(c_{i}, c_{j})}\big{)}
 \end{align}
 
-$\sigma_{i}, \sigma_{j}$ are the average distance of points in cluster $i$ and $j$ from the respective clusters, and $d(c_{i}, c_{j})$ is the distance between cluster centroids. A lower value of DB implies quality of the clustering.
+$\sigma_{i}, \sigma_{j}$ are the average distances of points in cluster $i$ and $j$ from the respective centroids, $d(c_{i}, c_{j})$ is the distance between cluster centroids.
 
-However, the LAB color space is only finite, which limits cluster separation. Therefore, for \system, the density of the cluster is more important than cluster separation, and we use a modified version of the Davies-Boudin index as below.
+However, the LAB color space is finite, which limits cluster separation. Therefore, the density of the cluster is more important than cluster separation, and we use a modified version of the Davies-Boudin index as below.
 \begin{align}
 DB' &= \frac{1}{n} \sum_{i=1, i \neq j}^{n}max\big{(}\frac{\sigma_{i}^{2} + \sigma_{j}^{2}}{d(c_{i}, c_{j})}\big{)}
 \end{align}
 
-\system runs K-Means clustering several times and picks centroids that minimize $DB'$. 
+\system runs K-Means clustering several times and picks centroids that minimize $DB'$. The resulting centroids are displayed as candidate colors.
