@@ -1,3 +1,4 @@
+*.pdf
 .Rapp.history
 *.texshop
 .Rhistory
