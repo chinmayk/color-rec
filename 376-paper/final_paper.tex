@@ -3,6 +3,7 @@
 \usepackage{times}
 \usepackage{uist}
 \usepackage{amsmath}
+\usepackage{graphicx}
 
 \newcommand\system{Colorific }
 \begin{document}
@@ -17,7 +18,7 @@
 % ------------------------
 
 
-\title{Colorific: A mixed initiative model for choosing the right color.}
+\title{Colorific: A Mixed Initiative Model for \\Choosing the Right Color}
 
 %%
 %% Note on formatting authors at different institutions, as shown below:
@@ -54,7 +55,7 @@ User Interfaces. - Graphical user interfaces.}
 
 \terms{Design, Human Factors, Experimentation}
 
-\keywords{Information visualization, colors, crowdsourcing, user study}
+\keywords{Information visualization, colors, crowdsourcing, user study, mixed initiative}
 
 \tolerance=400 
   % makes some lines with lots of white space, but 	
@@ -69,10 +70,26 @@ User Interfaces. - Graphical user interfaces.}
 \input algorithm.tex
 \section{SYSTEM EVALUATION}
 \input evaluation.tex
-\section{WALKTHROUGH}
-JMF An envisioned use case of mixed initiative. Include screenshot. (150 words)
 \section{DISCUSSION}
 \input discussion.tex
+\section{SCENARIO: DESIGNING WITH COLORIFIC}
+Colorific is designed to help novices with little experience in designing information visualizations quickly choose appropriate and compelling colors for their visualizations. Let's examine David, a football fan, as he makes a bar chart of the number of games won by a selection of Pac-10 football teams. 
+
+David begins making his chart in Microsoft Excel, but Excel has automatically colored each bar from a random set of colors. David wants to color each bar a representative color for the team. However, both the Cal Bears and the UCLA Bruins have the colors blue and gold. Which should be blue, and which should be gold? He loads Colorific to find out. David enters the specific topics he is plotting, such as the Stanford Cardinal and the Cal Bears, as well as their values. Colorific plots his values on a bar chart and automatically generates a selection of four potential palettes he can choose from. David selects one automatically generated palette, which looks almost the way he wants it. However, after seeing the results in context, he thinks the Cal Bears bar should be gold instead of blue. He clicks on the bar and is presented with a selection of other Colorific generated colors for the Cal Bears, as well as a color picker that allows him to tweak Colorific colors or select his own. 
+
+\scalebox{0.25}{\includegraphics{colorific_screenshot.png}}
+
+\section{DESIGN SPACE}
+Colorific provides one point in the space of many data visualization tools. We discuss limitations in our design and propose avenues for future work. 
+
+\subsection{Task Type}
+Creating data visualizations requires many component tasks. People must clean the data, then plot the data in a reasonable chart. Finally, aesthetic changes to the chart must be made, including coloring the chart appropriately. Colorific currently only supports the task of coloring a given chart. In the future, it would be beneficial to incorporate Colorific into a larger data visualization tool, so that people could clean, plot, and color their data all from within one tool. 
+
+\subsection{Expertise}
+Colorific is designed to be beneficial to both novice and expert data visualization designers. For novices, the main advantage of Colorific is the pre-made palettes, which can be tweaked and edited while giving the designer real-time feedback on what the color will look like in context of the visualization. For experts, Colorific's main advantage is saving time and effort. Trying to find the exact right color via a color picker is difficult and time-consuming. Colorific proposes appropriate colors, and makes it easy to make slight adjustments to a color to fit a theme. 
+
+\subsection{Time Scale}
+blah blah blah time
 
 \section{CONCLUSION}
 CEK Make up stuff

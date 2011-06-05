@@ -10,3 +10,9 @@ none 143
 
 data:  c(947, 253) 
 X-squared = 81.0337, df = 1, p-value < 2.2e-16
+
+
+Chi-squared test for given probabilities
+
+data:  c(947, 110, 143) 
+X-squared = 83.7562, df = 2, p-value < 2.2e-16
