@@ -45,3 +45,8 @@ DB' &= \frac{1}{n} \sum_{i=1, i \neq j}^{n}max\left(\frac{\sigma_{i}^{2} + \sigm
 \end{align}
 
 \system runs K-Means clustering several times and picks centroids that minimize $DB'$. The resulting centroids are displayed as candidate colors.
+
+\Subsection{choosing-palettes}{Choosing Palettes}
+Once candidate colors are identified, \system attempts to also find palettes if multiple topics are used as inputs. To form a palette, \system picks one color from the candidate colors for each topic. The colors are chosen using a Gauss-Seidel method for optimization [cite]. The objective function can either be frequency of occurrence of the chosen colors, their saturation or their perceptual separation. 
+
+In each case, \system constrains the chosen colors such that they are separated perceptually by a given distance (we use 25 times the just-noticeable difference). In some cases, such constraints may be impossible to satisfy. In such cases, \system performs a number of iterations of Gauss-Seidel to obtain a ``good-enough'' palette.
