@@ -79,18 +79,16 @@ User Interfaces. - Graphical user interfaces.}
 \input evaluation.tex
 \section{DISCUSSION}
 \input discussion.tex
-\section{DESIGNING WITH COLORIFIC}
-\subsection{Scenario}
+\section{SCENARIO: DESIGNING WITH COLORIFIC}
 \system is designed to help novices with little experience in designing information visualizations quickly choose appropriate and compelling colors for their visualizations. Let's examine David, a football fan, as he makes a bar chart of the number of games won by a selection of Pac-10 football teams. 
 
 David begins making his chart in Microsoft Excel, but Excel has automatically colored each bar from a pre-defined set of colors. David wants to color each bar a representative color for the team. However, both the Cal Bears and the UCLA Bruins have the colors blue and gold. Which should be blue, and which should be gold? He loads \system to find out. David enters the specific topics he is plotting, such as the Stanford Cardinal and the Cal Bears, as well as their values. \system plots his values on a bar chart and automatically generates a selection of four potential palettes he can choose from. David selects one automatically generated palette, which looks almost the way he wants it. However, after seeing the results in context, he thinks the Cal Bears bar should be gold instead of blue. He clicks on the bar and is presented with a selection of other \system generated colors for the Cal Bears, as well as a color picker that allows him to tweak \system colors or select his own. 
 
-\begin{center}
+\begin{figure}
+\label{screenshot}
 \scalebox{0.25}{\includegraphics{colorific_screenshot.png}}
-\end{center}
-
-\subsection{Pilot Feedback}
-pilot blah
+\caption{}
+\end{figure}
 
 \section{DESIGN SPACE}
 \system provides one point in the space of many data visualization tools. We summarize the decisions we made using the design space in \ref{design-space}. This representation of the design space is not meant to be exhaustive, but merely informative. 
@@ -98,7 +96,7 @@ pilot blah
 \begin{figure}
 \label{design-space}
 \includegraphics{design_space.png}
-\caption{\system Design space. Implemented choices in gray.}
+\caption{\system design space. Implemented choices in gray.}
 \end{figure}
 \Subsection{design-context}{Design Context} We believe having the right colors for a visualization help most in the analysis and the presentation stages. Therefore, \system provides no support for the ETL (extract-transform-load) stage of data visualization. However, these stages may also benefit, and perhaps guide the analyst in deciding which data is interesting. In the future, it would also be beneficial to incorporate \system into a larger data visualization tool so people can change visualization colors in context of their data.
 
