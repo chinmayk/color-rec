@@ -29,6 +29,14 @@ class ColorTools
 		rgb2xyz r,g,b
 	end
 	
+	def self.str_rgb2lab(str)
+		r = str[1,2].hex/255.0
+		g = str[3,2].hex/255.0
+		b = str[5,2].hex/255.0
+		
+		self.rgb2lab3(r,g,b)
+	end
+	
 	def self.rgb2lab3(r,g,b)	
 		x = r * 0.4124 + g * 0.3576 + b * 0.1805
 		y = r * 0.2126 + g * 0.7152 + b * 0.0722
@@ -54,7 +62,7 @@ class ColorTools
 		
 		lab = {}
 		lab['l'] = l; lab['a'] = a; lab['b'] = b;
-		
+		lab[:l] = l; lab[:a] = a; lab[:b] = b;
 		lab
 	end
 	

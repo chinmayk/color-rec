@@ -1,11 +1,10 @@
-\documentclass{article}
+\documentclass{chi2011}
 \input ../Resources/latex/std-macros
 \usepackage{times}
 \usepackage{xspace}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{booktabs}
 \usepackage{colortbl}
-\usepackage{uist}
 \usepackage{amsmath}
 \usepackage{graphicx}
 
@@ -25,44 +24,28 @@
 % ------------------------
 
 
-\title{\system: A Mixed Initiative Model for \\Choosing the Right Color}
+\title{\system: A Mixed Initiative Model Colorizer}
 
-%%
-%% Note on formatting authors at different institutions, as shown below:
-%% Change width arg (currently 7cm) to parbox commands as needed to
-%% accommodate widest lines, taking care not to overflow the 17.8cm line width.
-%% Add or delete parboxes for additional authors at different institutions. 
-%% If additional authors won't fit in one row, you can add a "\\"  at the
-%% end of a parbox's closing "}" to have the next parbox start a new row.
-%% Be sure NOT to put any blank lines between parbox commands!
-%%
-
+\numberofauthors{2}
 \author{
-\parbox[t]{9cm}{\centering
-	     {\em Chinmay Kulkarni}\\
-	     Stanford University HCI Group\\
-              Computer Science Department\\
-	     Stanford, CA 94305\\
-	     chinmay@cs.stanford.edu}
-\parbox[t]{9cm}{\centering
-	     {\em Julie Fortuna}\\
-	     Stanford University HCI Group\\
-              Computer Science Department\\
-	     Stanford, CA 94305\\
-	     jfortuna@stanford.edu}
+  \alignauthor Chinmay Kulkarni\\
+    \affaddr{Stanford University HCI Group}\\
+    \affaddr{Stanford, CA 94305}\\
+    \email{chinmay@cs.stanford.edu}
+  \alignauthor Julie Fortuna\\
+    \affaddr{Stanford University HCI Group}\\
+    \affaddr{Stanford, CA 94305}\\
+    \email{jfortuna@stanford.edu}
 }
 
 \maketitle
 
 \abstract
-Is it possible to automatically create a color palette relevant to a topic? Could such a palette be used to guide color choices while visualizing data? We envision a tool that automatically creates aesthetically pleasing and topic-relevant palettes for a  large class of topics. In order to do this, we must first extract palettes from color pixel values of images from Google Images via clustering and topic models. 
-
+Is it possible to automatically create a color palette relevant to a topic? Could such a palette be used to guide color choices while visualizing data? We present \system, a tool that automatically identifies relevant colors and palettes for a broad range of topics, and a mixed-initiative tool that allows tweaking of generated palettes. Evaluation shows \system verified that \system generates an acceptable set of relevant colors.
 \classification{H5.2 [Information interfaces and presentation]:
 User Interfaces. - Graphical user interfaces.}
 
-\terms{Design, Human Factors, Experimentation}
-
-\keywords{Information visualization, colors, crowdsourcing, user study, mixed initiative}
+\keywords{Information visualization, colors, mixed initiative}
 
 \tolerance=400 
   % makes some lines with lots of white space, but 	
@@ -79,43 +62,33 @@ User Interfaces. - Graphical user interfaces.}
 \input evaluation.tex
 \section{DISCUSSION}
 \input discussion.tex
-
 \section{SCENARIO: DESIGNING WITH COLORIFIC}
-\system is designed to help novices with little experience in designing information visualizations quickly choose appropriate and compelling colors for their visualizations. Let's follow David, a football fan, as he makes a bar chart of the number of games won by a selection of Pac-10 football teams. 
-
-David begins making his chart in Microsoft Excel, but Excel has automatically colored each bar from a pre-defined set of colors. David wants to color each bar a representative color for the team. He loads \system to see what colors it suggests. Based on the nominal values he is plotting, such as the Stanford Cardinal and the Cal Bears \system automatically generates a selection of four potential palettes he can choose from and plots his data values on a bar chart. David selects one automatically generated palette, which looks almost the way he wants it. However, after seeing the results in context, he thinks the Cal Bears bar should be gold instead of blue. He clicks on the bar and is presented with a selection of other \system generated colors for the Cal Bears, as well as a color picker that allows him to tweak \system colors or select his own. 
+Let's follow David, as he makes a bar chart of the number of games won by a selection of Pac-10 football teams. 
+David begins creating his chart in Microsoft Excel, but Excel colors each bar from a pre-defined set of colors. David wants to color each bar a representative color for the team. He loads \system to see what colors it suggests. Based on the nominal values he is plotting, such as the Stanford Cardinal and the Cal Bears \system automatically generates a selection of four potential palettes he can choose from and plots his data values on a bar chart. David selects one automatically generated palette, which looks almost the way he wants it. However, after seeing the results in context, he thinks the Cal Bears bar should be gold instead of blue. He clicks on the bar and is presented with a selection of other \system generated colors for the Cal Bears, as well as a color picker that allows him to tweak \system colors or select his own. 
 
 \begin{figure}[htb]
 \label{screenshot}
 \scalebox{0.25}{\includegraphics{colorific_screenshot.png}}
 \caption{Screenshot of \system.}
 \end{figure}
-
 \section{DESIGN SPACE}
-\system provides one point in the space of many data visualization tools. We summarize the decisions we made using the design space in Figure 4. This representation of the design space is not meant to be exhaustive, but merely informative. 
+\system provides one point in the space of many data visualization tools. We summarize the decisions we made using the design space in Figure 4. 
 
 \begin{figure}[htb]
 \label{design-space}
-\includegraphics{design_space.png}
+\includegraphics[scale=0.9]{design_space.png}
 \caption{\system design space. Implemented choices in gray.}
 \end{figure}
-\Subsection{design-context}{Design Context} We believe having the right colors for a visualization help most in the analysis and the presentation stages. Therefore, \system provides no support for the ETL (extract-transform-load) stage of data visualization. However, these stages may also benefit, and perhaps guide the analyst in deciding which data is interesting. In the future, it would also be beneficial to incorporate \system into a larger data visualization tool so people can change visualization colors in context of their data.
+\textbf{Design Context} We believe having the right colors for a visualization help most in the analysis and the presentation stages. Therefore, \system provides no support for the ETL (extract-transform-load) stage of data visualization. However, these stages may also benefit, and perhaps guide the analyst in deciding which data is interesting.
 
-\Subsection{design-user}{User} \system is meant for non-expert users and possibly expert analysts. 
- For novices, the main advantage of \system are pre-made palettes, which already have desirable properties, but can be tweaked and edited. For experts, \system's main advantage is saving time. While the expert designer could  benefit from such a system, designers use more advanced tools and often develop their own methods for extracting colors from images.
- 
-\Subsection{color-space}{Color Space} \system assumes that any color from the LAB space is an equally viable candidate. This may not be the case where the color space is constrained (for example, in printing techniques where only a few colors are available). While our method can be extended to these applications, by constraining the clustering algorithm,  we defer it to future work.
+\textbf{User} \system is meant for non-expert users and possibly expert analysts. For novices, the main advantage of \system are pre-made palettes, which already have desirable properties, but can be tweaked and edited. For experts, \system's main advantage is saving time. 
 
-\Subsection{number-items}{Number of Items} Since \system is a mixed initiative system, user input is still required for choosing the final colors. This makes it unwieldy where hundreds of items are involved. However, a visualization with hundreds of nominal variables is probably ill-designed to begin with, and perhaps no system can find colors that are adequately separated.
-
+\textbf{Color Space} \system considers any color from the LAB space an equally viable candidate. Where the color space is constrained, this is not the case (for example, in printing techniques where only a few colors are available). While \system can be extended to these applications, by constraining the clustering algorithm, we defer this to future work.
 \section{CONCLUSION}
-This paper presents a mixed initiative model for color choice in information visualization. The insight driving our research is that topically-related images contain topically relevant colors. Based on this insight, we can create a completely automated system to choose candidate colors for a topic.
-
-Going forward, it is promising to integrate \system in to a general visualization/analysis tool such as Excel. Another problem worth addressing is finding appropriate colors in a constrained color space, and improving built-in palettes offered by \system based on data from our Mechanical Turk experiments. Lastly, given the large amounts of data our experiments have generated, it may be possible to provide a ranking instead of just a set of candidate topic-colors.
-
-\section{ACKNOWLEDGMENTS} 
-We would like to thank Jeff Heer, Scott Klemmer and Jesse Cirimele for their valuable thoughts and encouragement, the Stanford HCI group for funding our Mechanical Turk experiments, and the participants in our in-person pilots and online experiments.
-
+This paper presents a mixed initiative model for color choice in information visualization. The insight driving our research is that topically-related images contain topically relevant colors. 
+Going forward, it is promising to integrate \system in to a general visualization/analysis tool such as Excel. Another problem worth addressing is finding appropriate colors in a constrained color space, and improving built-in palettes offered by \system based on data from our Mechanical Turk experiments. 
+%\section{ACKNOWLEDGMENTS} 
+%We would like to thank Jeff Heer, Scott Klemmer and Jesse Cirimele for their valuable thoughts and encouragement, the Stanford HCI group for funding our Mechanical Turk experiments, and the participants in our in-person pilots and online experiments.
 
 \bibliographystyle{abbrv}
 

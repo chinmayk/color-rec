@@ -67,7 +67,7 @@ open('./tmp/input','r') do |f|
 		
 		result_palette_str = [] 
 		
-		generated_pallete = analyzer.get_palette
+		generated_pallete = analyzer.get_palette(true)
 		
 		puts generated_pallete.to_json
 		

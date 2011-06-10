@@ -14,6 +14,8 @@ class ImageHister
 	HIST_HEIGHT = 500
 	
 	L_ACCURACY = 5.0; A_ACCURACY = 10.0; B_ACCURACY = 10.0;
+	
+	PROTOVIS_PALETTE = ["#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#7f7f7f", "#c7c7c7", "#bcbd22", "#dbdb8d", "#17becf", "#9edae5"];
 
 	def initialize
 		@topic_hist = {}
@@ -398,13 +400,28 @@ class ImageHister
 				clusters_for_query[:max] = max_value
 				clusters << clusters_for_query
 			end
+			closest_clusters = []
+			clusters.each do |term|
+				centers = []
+				term[:centroids].each do |c|
+					#find closest centroid
+					closest_color = PROTOVIS_PALETTE.min_by do |a|
+						ColorTools.LABDistance ColorTools.str_rgb2lab(a), c
+					end
+					puts "min color: #{closest_color}"
+					centers << c.merge({:rgba => closest_color[1..-1], :frequency => c[:frequency]}).merge(ColorTools.str_rgb2lab closest_color)
+				end
+				
+				closest_clusters << term.merge({:centroids => centers})
+			end
 			
 			@clusters = clusters
+			@closest_clusters = closest_clusters
 		end		
-		return @clusters
+		return @closest_clusters
 	end
 	
-	def get_palette
+	def get_palette(force_protovis = false)
 		
 		#Now, try and get palette. 
 		#Palette properties: 
@@ -427,6 +444,11 @@ class ImageHister
 		palette_random = []
 		
 		clusters = get_clusters
+		
+		if force_protovis
+			
+			clusters = @closest_clusters
+		end
 		
 		clusters.each do |term|
 			palette_frequency << term[:centroids].first
