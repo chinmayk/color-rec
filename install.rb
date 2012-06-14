@@ -9,12 +9,12 @@ if ARGV.empty?
 	print help_no_command
 end
 
-ARGV.each do|a|
+ARGV.each do |a|
   case ARGV[0] #Command
   when "clean"
   	puts "Cleaning installation\n"
   	`rm -f *.jpg *.gif *.tiff`
-  when install
+  when "install"
   	puts "Creating directories"
   	`mkdir -p data`
   end

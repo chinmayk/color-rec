@@ -1,14 +1,14 @@
-require'rmagick'
+# require'rmagick'
 require 'json'
 require 'open-uri'
 
 $LOAD_PATH << '.'
 require 'get-images'
 require 'color-tools'
-require 'mysql'
-require 'K-Means/lib/k_means'
+# require 'mysql'
+# require 'K-Means/lib/k_means'
 
-include Magick
+# include Magick
 
 class ImageHister
 	HIST_HEIGHT = 500
